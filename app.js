@@ -28,7 +28,7 @@ app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 
 const corsOptions = {
-  origin: ['https://app.nivit-tech.com'],
+  origin: ['https://gurukooltraining.com'],
   methods: 'GET, POST, PUT, DELETE,PATCH, HEAD',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true,

@@ -1,6 +1,6 @@
 const { Sequelize } = require("sequelize");
 const fs = require('fs');
-const sequelize = new Sequelize("gurukool_backend", "root", "Rahulsql", {
+const sequelize = new Sequelize("gurukooltraining_Gurukool_database", "gurukooltraining_Gurukool", "Gurukool@1234", {
   host: "localhost",
   port:3300,
   dialect: "mysql",
