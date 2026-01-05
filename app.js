@@ -50,13 +50,13 @@ app.use(errorHandler);
  
 const start = async () => {
   connectDB();
- await User.sync({ force: true });
-  await Case.sync({ force: true });
-  await UserCase.sync({ force: true });
-  await Faq.sync({ force: true });
-  await Token.sync({ force: true });
-    await Forms.sync({ force: true });
-console.log("User table synced");
+//  await User.sync({ force: true });
+//   await Case.sync({ force: true });
+//   await UserCase.sync({ force: true });
+//   await Faq.sync({ force: true });
+//   await Token.sync({ force: true });
+//     await Forms.sync({ force: true });
+// console.log("User table synced");
   app.listen(3000 );
 };
 
