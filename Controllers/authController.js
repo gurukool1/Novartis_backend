@@ -55,15 +55,15 @@ const register = async (req, res) => {
       role: role || "user",
       isActive: isActive !== undefined ? isActive : 1,
     });
-    if(newUser){ 
-      await Mailer.sendVerificationEmail(email);
-    }
-    else{
-      return res.status(200).json({ 
-        status: false,
-        message: "Failed to send verification email",
-         });
-    }
+    // if(newUser){ 
+    //   await Mailer.sendVerificationEmail(email);
+    // }
+    // else{
+    //   return res.status(200).json({ 
+    //     status: false,
+    //     message: "Failed to send verification email",
+    //      });
+    // }
     delete newUser.dataValues.password; // Remove password from user object before sending response
     return res.status(201).json({ 
         status: true,
