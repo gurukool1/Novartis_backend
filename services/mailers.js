@@ -54,7 +54,7 @@ env.config();
 
 const sendPasswordResetMail = async (email, url) => {
   try {
-    const subject = 'Reset Password | Your App Name';
+    const subject = 'Reset Your Password';
     const sendFrom = `"Case Management System" <${process.env.MAIL_FROM_ADDRESS}>`;
     const emailBody = await ejs.renderFile(path.join(__dirname, '..', 'views', 'emails', 'forgetPassword.ejs'), { link: url });
     const mailOptions = {
