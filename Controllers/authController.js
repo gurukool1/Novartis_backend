@@ -507,7 +507,7 @@ const forgotPassword = async (req, res) => {
       updatedToken = await User.create({ userId: user.id, reset_token: resetURL, reset_token_expiry: resetTokenExpiry });
     }
 
-    const resetLink = `https://app.nivit-tech.com/reset-password?token=${resetURL}`;
+    const resetLink = `https://gurukooltraining.com/reset-password?token=${resetURL}`;
     if (updatedToken) {
       let message;
       console.log("Reset token generated:", resetURL);
