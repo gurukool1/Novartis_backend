@@ -2,17 +2,14 @@ const Joi  = require('joi');
 
 
 const registerSchema = Joi.object({
-  investigatorName: Joi.string().min(3).max(30).required().messages({
-    'string.min': 'Investigator name must be at least 3 characters long.',
-    'string.max': 'Investigator name cannot exceed 30 characters.',
+  investigatorName: Joi.string().min(2).required().messages({
+    'string.min': 'Investigator name must be at least 2 characters long.',
   }),
-  username: Joi.string().min(3).max(30).required().messages({
-    'string.min': 'Username must be at least 3 characters long.',
-    'string.max': 'Username cannot exceed 30 characters.',
+  username: Joi.string().min(2).required().messages({
+    'string.min': 'Username must be at least 2 characters long.',
   }),
-  company_name: Joi.string().min(3).max(30).required().messages({
-    'string.min': 'Company name must be at least 3 characters long.',
-    'string.max': 'Company name cannot exceed 30 characters.',
+  company_name: Joi.string().min(2).required().messages({
+    'string.min': 'Company name must be at least 2 characters long.',
   }),
   email: Joi.string().email().required().messages({
     'string.email': 'Invalid email format.',
@@ -27,9 +24,8 @@ const registerSchema = Joi.object({
   siteNo: Joi.string().messages({
     'any.required': 'Site number is required.',
   }),
-  study_name: Joi.string().min(3).max(30).required().messages({
-    'string.min': 'Study name must be at least 3 characters long.',
-    'string.max': 'Study name cannot exceed 30 characters.',
+  study_name: Joi.string().min(2).required().messages({
+    'string.min': 'Study name must be at least 2 characters long.',
   }),
   country: Joi.string().required().messages({
     'any.required': 'Country is required.',
