@@ -54,11 +54,18 @@ const uploadCase = async (req, res) => {
         message: "Title and file are required.",
       });
     }
+    const getFirstHost = (hostHeader) => {
+        if (!hostHeader) return null;   
+        const firstHost = hostHeader.split(',')[0].trim();
+        return firstHost;
+    };
 
     const forwardedHost = req.get('X-Forwarded-Host')
     const forwardedProto = req.get('X-Forwarded-Proto')
 
-    const baseUrl = forwardedProto + '://' + forwardedHost;
+    const host = getFirstHost(forwardedHost);
+
+    const baseUrl = forwardedProto + '://' + host;
     const fileUrl = file.path ? baseUrl + '/' + file.path.replace(/\\/g, '/') : null;
     const filePath = file.path; // Local file path for conversion
 
