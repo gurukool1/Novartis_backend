@@ -36,7 +36,7 @@ const corsOptions = {
 
 app.use('/uploads',cors(corsOptions),express.static(path.join(__dirname, 'uploads')));
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("Welcome to the Novartis Backend API");
 });
 
@@ -57,7 +57,9 @@ const start = async () => {
 //   await Token.sync({ force: true });
 //     await Forms.sync({ force: true });
 // console.log("User table synced");
-  app.listen(3000 );
+  app.listen(3000, () => {
+    console.log("Server is running on port 3000");
+  });
 };
 
 start();
