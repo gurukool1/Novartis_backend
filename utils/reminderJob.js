@@ -14,11 +14,14 @@ cron.schedule('0 0 * * *', async () => { // Runs every day at midnight
     // Calculate the date 15 days ago
     const date15DaysAgo = new Date(currentDate);
     date15DaysAgo.setDate(currentDate.getDate() - 15);
-    // Find all cases where the assignedAt is 15 or more days ago
+    // Find all cases where the assignedAt is 15 or more days ago and not yet submitted
     const casesToRemind = await UserCase.findAll({
       where: {
         assignedAt: {
           [Op.lte]: date15DaysAgo,  // Find cases assigned 15 or more days ago
+        },
+        status: {
+          [Op.ne]: 'submitted',  // Exclude cases that have already been submitted
         },
       },
       include: [{
