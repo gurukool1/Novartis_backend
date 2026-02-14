@@ -3,23 +3,23 @@ const UserCase = require("../models/userCaseModel");
 const Case = require("../models/caseModel");
 const User = require("../models/userModel");
 const { Form } = require("../models");
-const { where } = require("sequelize");
+
 
 
 const submitForm = async (req, res) => {
   const userId = req.user.id;
- 
- 
-  
+  console.log("userId", userId);
+
   if (!userId) {
     return res.status(200).json({
       status: false,
       message: "User ID is required.",
     });
   }
-  
+
   try {
     const user = await User.findByPk(userId);
+
     if (!user || user.isDeleted === 1) {
       return res.status(200).json({
         status: false,
@@ -32,18 +32,18 @@ const submitForm = async (req, res) => {
         message: "Investigators can submit a form.",
       });
     }
-    const {caseId,userCaseId, grandTotal, formdata, percentage,isDraft} = req.body;
-     if(!caseId || !grandTotal || !formdata) {
+    const { caseId, userCaseId, grandTotal, formdata, percentage, isDraft } = req.body;
+    if (!caseId || !grandTotal || !formdata) {
       return res.status(200).json({
         status: false,
         message: " caseId,grand total and form data are required.",
       });
     }
-    console.log(percentage);
-    
-      
+
+    console.log("userId, caseId", userId, caseId);
+
     const userCase = await UserCase.findOne({
-      where: { caseId, userId, isDeleted: 0 },
+      where: { caseId: caseId, userId: userId, isDeleted: 0 },
     });
     if (!userCase) {
       return res.status(200).json({
@@ -51,6 +51,10 @@ const submitForm = async (req, res) => {
         message: "User case not found",
       });
     }
+
+
+
+
     const caseData = await Case.findByPk(caseId);
     if (!caseData) {
       return res.status(200).json({
@@ -58,20 +62,21 @@ const submitForm = async (req, res) => {
         message: "Case not found",
       });
     }
-    const existingForm = await Form.findOne({ where: { userCaseId, isDeleted:0} });
+    const existingForm = await Form.findOne({ where: { userCaseId: caseData.dataValues.id, isDeleted: 0 } });
+    console.log("existingForm", existingForm);
     if (existingForm) {
       return res.status(200).json({
         status: false,
         message: "Form already exists for this case.",
       });
     }
-    
+
     const status = percentage === 100 && isDraft === 1 ? 'submitted' : 'resume';
-    const alreadyAssigned = percentage === 100 && isDraft === 1  ? 1 : 0;
+    const alreadyAssigned = percentage === 100 && isDraft === 1 ? 1 : 0;
     const form = await Form.create({
       caseId,
       userId,
-      userCaseId,
+      userCaseId: caseData.dataValues.id,
       MMT_8_initial: formdata.MMT_8_initial || {},
       CDASI_Activity_initial: formdata.CDASI_Activity_initial || {},
       CDASI_Damage_initial: formdata.CDASI_Damage_initial || {},
@@ -94,12 +99,10 @@ const submitForm = async (req, res) => {
       isDraft: isDraft
     });
     await userCase.update(
-  {status: status,  percentage: percentage || 0, alreadyAssigned: alreadyAssigned},
-  {where: {caseId: caseId, userId: userId} }
-);
+      { status: status, percentage: percentage || 0, alreadyAssigned: alreadyAssigned },
+      { where: { caseId: caseId, userId: userId } }
+    );
 
-    
-    
     //  const baseUrl = req.protocol + '://' + req.get('host');
     // const fileUrl = caseData.file_path
     //   ? baseUrl + '/' + caseData.file_path.replace(/\\/g, '/')
@@ -109,7 +112,7 @@ const submitForm = async (req, res) => {
       data: {
         message: "Form submitted successfully",
         form,
-        
+
       },
     });
   } catch (error) {
@@ -122,19 +125,19 @@ const submitForm = async (req, res) => {
   }
 }
 
-const viewForm = async(req,res)=>{
+const viewForm = async (req, res) => {
   const userId = req.user.id;
- 
+
   if (!userId) {
     return res.status(200).json({
       status: false,
       message: "User ID is required.",
     });
   }
- 
+
   try {
-    const { userCaseId,formId, caseId } = req.body;
-    if (!userCaseId ) {
+    const { userCaseId, formId, caseId } = req.body;
+    if (!userCaseId) {
       return res.status(200).json({
         status: false,
         message: "UserCase ID is required.",
@@ -148,19 +151,19 @@ const viewForm = async(req,res)=>{
       });
     }
     let investigatorName = user.investigatorName || null;
-    if(user.role === "admin") {
+    if (user.role === "admin") {
       const form = await Form.findOne({ where: { userCaseId: userCaseId } });
-      if(!form){
+      if (!form) {
         return res.status(200).json({
           status: false,
           message: "Form not found",
-        }); 
+        });
       }
       const userID = form.userId;
       const userCase = await UserCase.findOne({
-        where: { id:  userCaseId  },
+        where: { id: userCaseId },
         include: [{ model: User, attributes: ['investigatorName'] }],
-        
+
       });
       if (!userCase) {
         return res.status(200).json({
@@ -171,8 +174,8 @@ const viewForm = async(req,res)=>{
       investigatorName = userCase.User.investigatorName || null;
       const formData = {
         ...form.dataValues,
-       investigatorName
-      }; 
+        investigatorName
+      };
       return res.status(200).json({
         status: true,
         data: {
@@ -197,7 +200,7 @@ const viewForm = async(req,res)=>{
     //   },
     // });
     // }
-    if(form.userId !== userId) {
+    if (form.userId !== userId) {
       return res.status(200).json({
         status: false,
         message: "You are not authorized to view this form.",
@@ -222,8 +225,8 @@ const viewForm = async(req,res)=>{
       data: {
         message: "Form found successfully",
         form: form,
-       
-      
+
+
       },
     });
   } catch (error) {
@@ -236,55 +239,55 @@ const viewForm = async(req,res)=>{
   }
 }
 
-const editForm = async(req,res)=>{
-    const userId = req.user.id;
-   
-    if (!userId) {
+const editForm = async (req, res) => {
+  const userId = req.user.id;
+
+  if (!userId) {
+    return res.status(200).json({
+      status: false,
+      message: "User ID is required.",
+    });
+  }
+  try {
+    const { formId, caseId, userCaseId, grandTotal, formdata, percentage, isDraft } = req.body;
+    if (!formId || !userCaseId || !grandTotal || !formdata) {
       return res.status(200).json({
         status: false,
-        message: "User ID is required.",
+        message: "form ID, Case ID, form data and total score is required.",
       });
     }
-    try {
-        const  {formId,caseId, userCaseId, grandTotal, formdata,percentage,isDraft} = req.body;
-        if(!formId || !userCaseId || !grandTotal || !formdata) {
-          return res.status(200).json({
-            status: false,
-            message: "form ID, Case ID, form data and total score is required.",
-          });
-        }
-        console.log(percentage);
-        
-      const user = await User.findByPk(userId);
-      if (!user || user.isDeleted === 1) {
-        return res.status(200).json({
-          status: false,
-          message: "User not found",
-        });
-      }
-      const existingForm = await Form.findOne({ where: { id: formId, userCaseId } });
-      if (!existingForm) {
-        return res.status(200).json({
-          status: false,
-          message: "Form not found",
-        });
-      }
-      
-      
-      if(existingForm.userId !== userId ) {
-        return res.status(200).json({
-          status: false,
-          message: "You are not authorized to edit this form.",
-        });
-      }
-      console.log("existing case id and case id", existingForm.caseId, parseInt(caseId));
-      if(existingForm.caseId !== parseInt(caseId) ) {
-        return res.status(200).json({
-          status: false,
-          message: "You are not authorized to edit this form.",
-        });
-      }
-      const userCase = await UserCase.findOne({
+    console.log(percentage);
+
+    const user = await User.findByPk(userId);
+    if (!user || user.isDeleted === 1) {
+      return res.status(200).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+    const existingForm = await Form.findOne({ where: { id: formId, userCaseId } });
+    if (!existingForm) {
+      return res.status(200).json({
+        status: false,
+        message: "Form not found",
+      });
+    }
+
+
+    if (existingForm.userId !== userId) {
+      return res.status(200).json({
+        status: false,
+        message: "You are not authorized to edit this form.",
+      });
+    }
+    console.log("existing case id and case id", existingForm.caseId, parseInt(caseId));
+    if (existingForm.caseId !== parseInt(caseId)) {
+      return res.status(200).json({
+        status: false,
+        message: "You are not authorized to edit this form.",
+      });
+    }
+    const userCase = await UserCase.findOne({
       where: { caseId, userId, isDeleted: 0 },
     });
     if (!userCase) {
@@ -293,10 +296,10 @@ const editForm = async(req,res)=>{
         message: "User case not found",
       });
     }
-      
-      const status = percentage === 100 && isDraft === 1 ? 'submitted' : 'resume';
-      const alreadyAssigned = percentage === 100 && isDraft === 1 ? 1 : 0;
-      const updatedForm = await existingForm.update({
+
+    const status = percentage === 100 && isDraft === 1 ? 'submitted' : 'resume';
+    const alreadyAssigned = percentage === 100 && isDraft === 1 ? 1 : 0;
+    const updatedForm = await existingForm.update({
       caseId,
       MMT_8_initial: formdata.MMT_8_initial || existingForm.MMT_8_initial,
       CDASI_Activity_initial: formdata.CDASI_Activity_initial || existingForm.CDASI_Activity_initial,
@@ -320,10 +323,10 @@ const editForm = async(req,res)=>{
       percentage: percentage,
       isDraft: isDraft
     });
-     await userCase.update(
-  {status: status,  percentage: percentage, alreadyAssigned: alreadyAssigned},
-  {where: {caseId: caseId, userId: userId} }
-);
+    await userCase.update(
+      { status: status, percentage: percentage, alreadyAssigned: alreadyAssigned },
+      { where: { caseId: caseId, userId: userId } }
+    );
     //  const  caseFile = await Case.findOne({ where: { id: caseId } });
     // if (!caseFile) {
     //   return res.status(200).json({
@@ -331,7 +334,7 @@ const editForm = async(req,res)=>{
     //     message: "Case not found",
     //   });
     // }
-    
+
     //  const baseUrl = req.protocol + '://' + req.get('host');
     // const fileUrl = caseFile.file_path
     //   ? baseUrl + '/' + caseFile.file_path.replace(/\\/g, '/')
@@ -341,17 +344,17 @@ const editForm = async(req,res)=>{
       data: {
         message: "Form updated successfully",
         form: updatedForm,
-       // fileUrl
+        // fileUrl
       },
     });
-    } catch (error) {
-      console.error("Error in submitting a form: ", error);
-      return res.status(200).json({
-        status: false,
-        message: "Something went wrong",
-        error: error.message,
-      });
-    }
+  } catch (error) {
+    console.error("Error in submitting a form: ", error);
+    return res.status(200).json({
+      status: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
 }
 
-module.exports = { submitForm , viewForm, editForm};
+module.exports = { submitForm, viewForm, editForm };

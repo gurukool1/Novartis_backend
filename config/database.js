@@ -1,10 +1,10 @@
 const { Sequelize } = require("sequelize");
 const fs = require('fs');
-const sequelize = new Sequelize("gurukooltraining_Gurukool_database", "gurukooltraining_Gurukool", "Gurukool@1234", {
+const sequelize = new Sequelize("gurukool_backend", "root", "gaurav", {
   host: "localhost",
-  port:3306,
+  port: 3306,
   dialect: "mysql",
-  });
+});
 
 
 async function connectDB() {

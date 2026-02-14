@@ -7,6 +7,9 @@ const UserCase = require("./models/userCaseModel");
 const Faq = require("./models/faqModel");
 const Token = require("./models/tokensModel");
 const Forms = require("./models/formsModel");
+const EvaluationReport = require("./models/EvaluationReport");
+const ValidationRule = require("./models/ValidationRule");
+const MasterAnswerSheet = require("./models/MasterAnswerSheet");
 const path = require("path");
 const env = require("dotenv");
 env.config();
@@ -16,12 +19,13 @@ const userRoutes = require("./Routes/userRoutes");
 const authRoutes = require("./Routes/authRoutes");
 const faqRoutes = require("./Routes/faqRoutes");
 const formRoutes = require("./Routes/formRoutes");
+const evaluationRoutes = require("./Routes/evaluationRoutes");
 
 require("./utils/reminderJob");
 const errorHandler = require("./Middleware/errorHandler");
 
-const app = express(); 
- 
+const app = express();
+
 app.use(cors());
 app.use(express.json());
 app.set('trust proxy', true);
@@ -34,7 +38,7 @@ const corsOptions = {
   credentials: true,
 };
 
-app.use('/uploads',cors(corsOptions),express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', cors(corsOptions), express.static(path.join(__dirname, 'uploads')));
 
 app.get("/api", (req, res) => {
   res.send("Welcome to the Novartis Backend API");
@@ -44,19 +48,22 @@ app.use("/api", authRoutes);
 app.use("/api", adminRoutes);
 app.use('/api', userRoutes);
 app.use("/api", faqRoutes);
-app.use('/api',formRoutes);
-
+app.use('/api', formRoutes);
+app.use("/api", evaluationRoutes);
 app.use(errorHandler);
- 
+
 const start = async () => {
   connectDB();
-//  await User.sync({ force: true });
-//   await Case.sync({ force: true });
-//   await UserCase.sync({ force: true });
-//   await Faq.sync({ force: true });
-//   await Token.sync({ force: true });
-//     await Forms.sync({ force: true });
-// console.log("User table synced");
+  //  await User.sync({ force: true });
+  //   await Case.sync({ force: true });
+  //   await UserCase.sync({ force: true });
+  //   await Faq.sync({ force: true });
+  //   await Token.sync({ force: true });
+  //     await Forms.sync({ force: true });
+  // await EvaluationReport.sync({ force: true });
+  // await ValidationRule.sync({ force: true });
+  // await MasterAnswerSheet.sync({ force: true });
+  // console.log("User table synced");
   app.listen(3000, () => {
     console.log("Server is running on port 3000");
   });
