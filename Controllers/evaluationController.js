@@ -1,3 +1,4 @@
+const { Form } = require('../models');
 const { runEvaluation, getEvaluationReport } = require('../utils/evaluationOrchestrator');
 const evaluationStats = require('../utils/evaluationStats');
 
@@ -25,7 +26,15 @@ const triggerEvaluation = async (req, res) => {
             req.user?.id // Pass admin ID if available
         );
 
-        return res.status(200).json(result);
+        const formData = await Form.findByPk(formId);
+
+        return res.status(200).json(
+            {
+                success: true,
+                form: formData,
+                result: result
+            }
+        );
 
     } catch (error) {
         console.error('Error in triggerEvaluation:', error);
