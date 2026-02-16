@@ -20,6 +20,7 @@ const authRoutes = require("./Routes/authRoutes");
 const faqRoutes = require("./Routes/faqRoutes");
 const formRoutes = require("./Routes/formRoutes");
 const evaluationRoutes = require("./Routes/evaluationRoutes");
+const masterSheetRoutes = require("./Routes/masterSheetRoutes");
 
 require("./utils/reminderJob");
 const errorHandler = require("./Middleware/errorHandler");
@@ -50,6 +51,7 @@ app.use('/api', userRoutes);
 app.use("/api", faqRoutes);
 app.use('/api', formRoutes);
 app.use("/api", evaluationRoutes);
+app.use("/api", masterSheetRoutes);
 app.use(errorHandler);
 
 const start = async () => {

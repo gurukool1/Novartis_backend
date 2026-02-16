@@ -4,14 +4,14 @@ const multer = require("multer")
 
 // const storage  = multer.diskStorage({
 //     destination: (req,file,cb)=>{
-         
+
 //          const uploadDir = "uploads/";
-        
+
 //             fs.exists(uploadDir, function (exists) {
 //               if (!exists) {
 //                 fs.mkdirSync(uploadDir, { recursive: true });
 //               }
-        
+
 //               cb(null, uploadDir);
 //     })
 // },
@@ -35,7 +35,7 @@ const multer = require("multer")
 
 
 // Maximum file size: 50MB
-const MAX_SIZE = 50 * 1024 * 1024; // 50 MB in bytes
+const MAX_SIZE = 10 * 1024 * 1024; // 50 MB in bytes
 
 // Configure storage
 const storage = multer.diskStorage({
