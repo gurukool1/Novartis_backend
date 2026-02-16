@@ -7,12 +7,6 @@ const EvaluationReport = sequelize.define('EvaluationReport', {
         primaryKey: true,
         autoIncrement: true
     },
-    userCaseId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'user_case_id',
-        comment: 'Reference to user submission ID (Form.userCaseId)'
-    },
     formId: {
         type: DataTypes.INTEGER,
         allowNull: false,

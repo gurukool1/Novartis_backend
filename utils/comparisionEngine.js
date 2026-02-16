@@ -17,17 +17,17 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
 
     switch (validationType) {
         case 'exact':
-            return this.exactMatch(expectedValue, actualValue);
+            return exactMatch(expectedValue, actualValue);
 
         case 'range':
-            return this.rangeMatch(
+            return rangeMatch(
                 expectedValue,
                 actualValue,
                 validationRule.acceptableRange
             );
 
         case 'list':
-            return this.listMatch(
+            return listMatch(
                 actualValue,
                 validationRule.acceptableValues
             );
@@ -41,7 +41,7 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
             };
 
         default:
-            return this.exactMatch(expectedValue, actualValue);
+            return exactMatch(expectedValue, actualValue);
     }
 }
 
@@ -72,7 +72,7 @@ const rangeMatch = (expected, actual, acceptableRange) => {
 
     // Check if both are valid numbers
     if (isNaN(expectedNum) || isNaN(actualNum)) {
-        return this.exactMatch(expected, actual);
+        return exactMatch(expected, actual);
     }
 
     const deviation = actualNum - expectedNum;
@@ -152,7 +152,7 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
         const validationRule = rulesMap[path] || null;
 
         // Perform comparison
-        const comparisonResult = this.compareField(
+        const comparisonResult = compareField(
             expectedValue,
             actualValue,
             validationRule

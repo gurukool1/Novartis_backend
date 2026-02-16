@@ -47,7 +47,7 @@ const getDiscrepancies = (comparisons) => {
             deviation: c.deviation,
             status: c.status,
             message: c.message,
-            severity: this.calculateSeverity(c.deviation, c.validationType)
+            severity: calculateSeverity(c.deviation, c.validationType)
         }));
 }
 

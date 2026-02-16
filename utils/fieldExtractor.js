@@ -12,7 +12,7 @@ const flattenJSON = (jsonData, parentPath = '') => {
         const value = jsonData[key];
 
         // Skip metadata fields
-        if (this.isMetadataField(key)) {
+        if (isMetadataField(key)) {
             continue;
         }
 
@@ -23,12 +23,12 @@ const flattenJSON = (jsonData, parentPath = '') => {
                 fields.push({
                     path: currentPath,
                     value: null,
-                    section: this.extractSection(currentPath),
+                    section: extractSection(currentPath),
                     isEmpty: true
                 });
             } else {
                 // Recurse into nested object
-                const nestedFields = this.flattenJSON(value, currentPath);
+                const nestedFields = flattenJSON(value, currentPath);
                 fields.push(...nestedFields);
             }
         } else {
@@ -36,7 +36,7 @@ const flattenJSON = (jsonData, parentPath = '') => {
             fields.push({
                 path: currentPath,
                 value: value,
-                section: this.extractSection(currentPath),
+                section: extractSection(currentPath),
                 isEmpty: false
             });
         }

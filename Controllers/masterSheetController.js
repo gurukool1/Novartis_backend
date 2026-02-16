@@ -279,7 +279,7 @@ const uploadAnswerSheet = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating master sheet:', error);
-        return res.status(500).json({
+        return res.status(200).json({
             success: false,
             message: 'Error creating master answer sheet',
             error: error.message

@@ -8,12 +8,12 @@ const formDataConverter = require('./formDataConverter.js');
 
 
 
-const runEvaluation = async (formId, userCaseId, caseId, evaluatedBy = null) => {
+const runEvaluation = async (formId, caseId, evaluatedBy = null) => {
     try {
-        console.log(`Starting evaluation for formId: ${formId}, userCaseId: ${userCaseId}, caseId: ${caseId}`);
+        console.log(`Starting evaluation for formId: ${formId}, caseId: ${caseId}`);
 
         // Step 1: Check if master answer sheet exists
-        const masterSheet = await this.getMasterSheet(caseId);
+        const masterSheet = await getMasterSheet(caseId);
 
         if (!masterSheet) {
             console.log(`No master answer sheet found for caseId: ${caseId}`);
@@ -39,7 +39,7 @@ const runEvaluation = async (formId, userCaseId, caseId, evaluatedBy = null) => 
         console.log(`User data sections: ${Object.keys(userData).length}`);
 
         // Step 4: Get validation rules
-        const validationRules = await this.getValidationRules(caseId);
+        const validationRules = await getValidationRules(caseId);
         console.log(`Found ${validationRules.length} validation rules`);
 
         // Step 5: Perform comparison
@@ -62,7 +62,6 @@ const runEvaluation = async (formId, userCaseId, caseId, evaluatedBy = null) => 
         // Step 8: Save evaluation report to database
         const reportData = {
             formId: formId,
-            userCaseId: userCaseId,
             caseId: caseId,
             totalFields: stats.totalFields,
             matchedFields: stats.matchedFields,
@@ -73,7 +72,7 @@ const runEvaluation = async (formId, userCaseId, caseId, evaluatedBy = null) => 
             evaluatedBy: evaluatedBy
         };
 
-        const savedReport = await this.saveEvaluationReport(reportData);
+        const savedReport = await saveEvaluationReport(reportData);
 
         console.log(`Evaluation report saved with ID: ${savedReport.id}`);
 
@@ -168,22 +167,22 @@ const getEvaluationByFormId = async (formId) => {
 }
 
 
-const getEvaluationByUserCaseId = async (userCaseId) => {
-    try {
-        const report = await EvaluationReport.findOne({
-            where: {
-                userCaseId: userCaseId,
-                isDeleted: 0
-            },
-            order: [['evaluatedAt', 'DESC']] // Get latest evaluation
-        });
+// const getEvaluationByUserCaseId = async (userCaseId) => {
+//     try {
+//         const report = await EvaluationReport.findOne({
+//             where: {
+//                 userCaseId: userCaseId,
+//                 isDeleted: 0
+//             },
+//             order: [['evaluatedAt', 'DESC']] // Get latest evaluation
+//         });
 
-        return report;
-    } catch (error) {
-        console.error('Error fetching evaluation by userCaseId:', error);
-        throw error;
-    }
-}
+//         return report;
+//     } catch (error) {
+//         console.error('Error fetching evaluation by userCaseId:', error);
+//         throw error;
+//     }
+// }
 
 
 module.exports = {
@@ -193,5 +192,5 @@ module.exports = {
     saveEvaluationReport,
     getEvaluationReport,
     getEvaluationByFormId,
-    getEvaluationByUserCaseId
+    // getEvaluationByUserCaseId
 }

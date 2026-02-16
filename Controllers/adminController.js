@@ -12,7 +12,7 @@ const router = express.Router();
 
 
 
- 
+
 
 const uploadCase = async (req, res) => {
   const userId = req.user.id;
@@ -55,9 +55,9 @@ const uploadCase = async (req, res) => {
       });
     }
     const getFirstHost = (hostHeader) => {
-        if (!hostHeader) return null;   
-        const firstHost = hostHeader.split(',')[0].trim();
-        return firstHost;
+      if (!hostHeader) return null;
+      const firstHost = hostHeader.split(',')[0].trim();
+      return firstHost;
     };
 
     const forwardedHost = req.get('X-Forwarded-Host')
@@ -71,21 +71,21 @@ const uploadCase = async (req, res) => {
 
     // Convert to PDF using helper
     let pdfUrl = null;
-   
+
     try {
       const pdfData = await pdfConverter(filePath);
-      pdfUrl = baseUrl+pdfData.relativePath;
+      pdfUrl = baseUrl + pdfData.relativePath;
 
     } catch (conversionErr) {
       console.error("[uploadCase] PDF conversion failed:", {
-              message: conversionErr.message,
-              stack: conversionErr.stack,
-              name: conversionErr.name,
-            });      // Don't fail the upload, but log the error
+        message: conversionErr.message,
+        stack: conversionErr.stack,
+        name: conversionErr.name,
+      });      // Don't fail the upload, but log the error
       console.warn("Proceeding without PDF conversion");
     }
 
-   
+
 
     // Create case with both file URL and PDF URL
     const newCase = await Case.create({
@@ -140,10 +140,10 @@ const viewUsers = async (req, res) => {
         message: "Only admin can view.",
       });
     }
-   const totalUsers = await User.findAll({
-  where: {   role: "user" },
-  order: [["createdAt", "DESC"]],
-});
+    const totalUsers = await User.findAll({
+      where: { role: "user" },
+      order: [["createdAt", "DESC"]],
+    });
     if (totalUsers === 0) {
       return res.status(200).json({
         status: false,
@@ -165,7 +165,7 @@ const viewUsers = async (req, res) => {
       error: error.message,
     });
   }
-};        
+};
 
 const viewCases = async (req, res) => {
   const userId = req.user.id;
@@ -191,18 +191,18 @@ const viewCases = async (req, res) => {
     }
     const totalCases = await Case.findAll({
       where: { isDeleted: 0 },
-      order: [["createdAt", "DESC"]],  
-    });  
+      order: [["createdAt", "DESC"]],
+    });
     if (totalCases === 0) {
       return res.status(200).json({
         status: false,
         message: "No cases found.",
       });
     }
-  
+
     //  const casesWithFileUrl = totalCases.map(c => ({
     //   ...c.dataValues,
-      
+
     // }));
     return res.status(200).json({
       status: true,
@@ -306,16 +306,16 @@ const assignCase = async (req, res) => {
   }
   try {
     const { userId, caseId, formType } = req.body;
-    if(!userId || !caseId){
+    if (!userId || !caseId) {
       return res.status(200).json({
         status: false,
         message: "User ID and Case ID are required.",
       });
-    } 
+    }
 
     const admin = await User.findByPk(adminId);
     if (!admin || admin.isDeleted === 1) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         status: false,
         message: "Admin not found",
       });
@@ -331,15 +331,15 @@ const assignCase = async (req, res) => {
         status: false,
         message: "Admin cannot assign a case to themselves.",
       });
-    } 
-  const alreadyAssignedCase = await userCase.findOne({
+    }
+    const alreadyAssignedCase = await userCase.findOne({
       where: {
         userId: userId,
         caseId: caseId,
         formType: formType
       },
     });
-    if(alreadyAssignedCase && alreadyAssignedCase.isDeleted === 1){
+    if (alreadyAssignedCase && alreadyAssignedCase.isDeleted === 1) {
       alreadyAssignedCase.isDeleted = 0;
       await alreadyAssignedCase.save();
       return res.status(200).json({
@@ -353,27 +353,27 @@ const assignCase = async (req, res) => {
         message: "Case already assigned to the user.",
       });
     }
-     const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
     if (!user || user.isDeleted === 1) {
       return res.status(200).json({
         status: false,
         message: "User not found",
       });
     }
-    if(user.role === "admin"){
+    if (user.role === "admin") {
       return res.status(200).json({
-        status: false,        
+        status: false,
         message: "Admin cannot be assigned a case.",
       });
     }
-     const caseToAssign = await Case.findByPk(caseId);
+    const caseToAssign = await Case.findByPk(caseId);
     if (!caseToAssign) {
       return res.status(200).json({
         status: false,
         message: "Case not found",
       });
     }
-     
+
     const assignedCase = await userCase.create({
       userId: userId,
       caseId: caseId,
@@ -417,8 +417,8 @@ const assignCaseToMultipleUsers = async (req, res) => {
         message: "User IDs and Case ID and Form Type are required.",
       });
     }
-   
-    
+
+
     const admin = await User.findByPk(adminId);
     if (!admin || admin.isDeleted === 1) {
       return res.status(200).json({
@@ -464,11 +464,11 @@ const assignCaseToMultipleUsers = async (req, res) => {
         const alreadyAssignedCase = await userCase.findOne({
           where: { userId: userId, caseId: caseId, isDeleted: 0, alreadyAssigned: 0 },
         });
-        
+
         if (alreadyAssignedCase) {
           skippedUsers.push({ userId, reason: "Case already assigned" });
           continue;
-        }   
+        }
         const assignedCase = await userCase.create({
           userId: userId,
           caseId: caseId,
@@ -478,7 +478,7 @@ const assignCaseToMultipleUsers = async (req, res) => {
         });
         assignedCases.push({ userId, status: "Assigned" });
       } catch (err) {
-        errors.push({ userId, error: err.message , details: err.errors ? err.errors[0]?.message : undefined});
+        errors.push({ userId, error: err.message, details: err.errors ? err.errors[0]?.message : undefined });
       }
     }
 
@@ -535,7 +535,7 @@ const unAssignCase = async (req, res) => {
     const assignedCase = await userCase.findOne({
       where: {
         id: userCaseId,
-       isDeleted:0,
+        isDeleted: 0,
       },
     });
     if (!assignedCase) {
@@ -544,15 +544,17 @@ const unAssignCase = async (req, res) => {
         message: "Case is not assigned to the user.",
       });
     }
-   // console.log("Assigned case found:", assignedCase);
+    // console.log("Assigned case found:", assignedCase);
     assignedCase.isDeleted = 1;
     assignedCase.status = "begin";
-     // Mark as deleted instead of destroying
+    // Mark as deleted instead of destroying
     await assignedCase.save();
 
-    const form =  await Form.findOne({where: {
-      userCaseId: userCaseId,
-    }})
+    const form = await Form.findOne({
+      where: {
+        userCaseId: userCaseId,
+      }
+    })
     if (form) {
       form.isDeleted = 1
       await form.save()
@@ -596,10 +598,10 @@ const assignedCases = async (req, res) => {
       });
     }
     const assignedCases = await userCase.findAll({
-      
+
       include: [
-        { model: Case, attributes: ["id", "title","fileUrl"] },
-        { model: User, attributes: [ "username", "email"] },
+        { model: Case, attributes: ["id", "title", "fileUrl"] },
+        { model: User, attributes: ["username", "email"] },
       ],
       order: [["assignedAt", "DESC"]],
     });
@@ -615,10 +617,10 @@ const assignedCases = async (req, res) => {
         message: "No cases assigned to the user.",
       });
     }
-    
+
     const response = assignedCases.map((assignment, index) => {
       return {
-         caseId: assignment.Case.id,
+        caseId: assignment.Case.id,
         // userId: assignment.User.id,
         userName: assignment.User.username,
         userEmail: assignment.User.email,
@@ -653,7 +655,7 @@ const getAssignedUsersForCase = async (req, res) => {
       status: false,
       message: "User ID is required.",
     });
-  } 
+  }
   try {
     const admin = await User.findByPk(adminId);
     if (!admin || admin.isDeleted === 1) {
@@ -666,7 +668,7 @@ const getAssignedUsersForCase = async (req, res) => {
       return res.status(200).json({
         status: false,
         message: "Only admin can view assigned users for a case.",
-      });    
+      });
     }
     const { caseId } = req.body;
     if (!caseId) {
@@ -675,22 +677,22 @@ const getAssignedUsersForCase = async (req, res) => {
         message: "Case ID is required.",
       });
     }
-   
-        const assignedUser = await UserCase.findAll({
-          where: {
-            caseId: caseId,
-             isDeleted:0
-          },
-          include: [{ model: User, attributes: ["id", "username", "email"] }],
-        });
+
+    const assignedUser = await UserCase.findAll({
+      where: {
+        caseId: caseId,
+        isDeleted: 0
+      },
+      include: [{ model: User, attributes: ["id", "username", "email"] }],
+    });
     if (!assignedUser) {
       return res.status(200).json({
         status: false,
         message: "No users assigned to this case.",
       });
     }
-  
-  
+
+
 
     return res.status(200).json({
       status: true,
@@ -709,7 +711,7 @@ const getAssignedUsersForCase = async (req, res) => {
   }
 }
 
-const getTotalAssignedUsers = async(req,res)=>{
+const getTotalAssignedUsers = async (req, res) => {
   const userId = req.user.id;
   if (!userId) {
     return res.status(200).json({
@@ -731,8 +733,8 @@ const getTotalAssignedUsers = async(req,res)=>{
         message: "Only admin can view total assigned users.",
       });
     }
-    const {caseId} = req.body;
-    if(!caseId){
+    const { caseId } = req.body;
+    if (!caseId) {
       return res.status(200).json({
         status: false,
         message: "Case ID is required.",
@@ -742,7 +744,7 @@ const getTotalAssignedUsers = async(req,res)=>{
       where: { caseId: caseId },
       include: [{ model: User, attributes: ["id", "username"] }],
     });
-    
+
     return res.status(200).json({
       status: true,
       data: {
@@ -759,9 +761,9 @@ const getTotalAssignedUsers = async(req,res)=>{
     });
   }
 }
-   
-   
-const submittedCases = async(req,res)=>{
+
+
+const submittedCases = async (req, res) => {
   const userId = req.user.id;
   if (!userId) {
     return res.status(200).json({
@@ -782,29 +784,29 @@ const submittedCases = async(req,res)=>{
         status: false,
         message: "Only admin can view submitted cases.",
       });
-    }  
+    }
     // Logic to submit cases goes here
     const submittedCases = await userCase.findAll({
-      where: { alreadyAssigned : 1 },
+      where: { alreadyAssigned: 1 },
       include: [
-        { model: Case, attributes: ["id", "title", "fileUrl","pdfUrl"] },
+        { model: Case, attributes: ["id", "title", "fileUrl", "pdfUrl"] },
         { model: User, attributes: ["id", "username"] },
       ],
       order: [["updatedAt", "DESC"]],
     });
-    
 
 
-     const casesWithFileUrlAndFormId = await Promise.all(submittedCases.map(async (c) => {
-    // Get formId for each case based on caseId and userId
-    const form = await Form.findOne({ where: { caseId: c.Case.id, userId: c.User.id } });
 
-    return {
-      ...c.dataValues,
-          formId: form ? form.id : null,
-      
-    };
-  }));
+    const casesWithFileUrlAndFormId = await Promise.all(submittedCases.map(async (c) => {
+      // Get formId for each case based on caseId and userId
+      const form = await Form.findOne({ where: { caseId: c.Case.id, userId: c.User.id } });
+
+      return {
+        ...c.dataValues,
+        formId: form ? c.dataValues.id : null,
+
+      };
+    }));
 
 
     return res.status(200).json({
@@ -812,7 +814,7 @@ const submittedCases = async(req,res)=>{
       data: {
         message: "Submitted cases fetched successfully",
         submittedCases: casesWithFileUrlAndFormId,
-       
+
       },
     });
 
@@ -858,7 +860,7 @@ const filterByCaseId = async (req, res) => {
     }
     const userCase = await UserCase.findAll({
       where: { caseId: caseId },
-      include: [{ model: User, attributes: ["id", "username", "email", "country",  "siteNo"] }],
+      include: [{ model: User, attributes: ["id", "username", "email", "country", "siteNo"] }],
     });
     return res.status(200).json({
       status: true,
@@ -880,16 +882,16 @@ const filterByCaseId = async (req, res) => {
 
 
 
-const isActive = async (req,res)=>{
+const isActive = async (req, res) => {
   const adminId = req.user.id;
   if (!adminId) {
     return res.status(200).json({
       status: false,
       message: "admin ID is required.",
-     });
+    });
   }
   const { userId } = req.body;
-  
+
   if (!userId) {
     return res.status(200).json({
       status: false,
@@ -908,7 +910,7 @@ const isActive = async (req,res)=>{
       return res.status(200).json({
         status: false,
         message: "You are not admin.",
-      });    
+      });
     }
     const userToUpdate = await User.findByPk(userId);
     if (!userToUpdate) {
@@ -917,7 +919,7 @@ const isActive = async (req,res)=>{
         message: "User not found",
       });
     }
-    if(userToUpdate.role === "admin"){
+    if (userToUpdate.role === "admin") {
       return res.status(200).json({
         status: false,
         message: "Admin cannot be deactivated.",
@@ -941,63 +943,64 @@ const isActive = async (req,res)=>{
   }
 }
 const deleteAccount = async (req, res) => {
- 
-    const adminId = req.user.id;
-    if (!adminId) {
-      return res.status(200).json({
-        status: false,
-        message: "admin ID is required.",
-         });
-    }
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(200).json({
-        status: false,
-        message: "User ID is required.",
-         });
-    }
-   try {
+
+  const adminId = req.user.id;
+  if (!adminId) {
+    return res.status(200).json({
+      status: false,
+      message: "admin ID is required.",
+    });
+  }
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(200).json({
+      status: false,
+      message: "User ID is required.",
+    });
+  }
+  try {
     const admin = await User.findOne({ where: { id: adminId } });
     if (!admin || admin.isDeleted === 1) {
       return res.status(200).json({
         status: false,
         message: "admin not found.",
-         });
+      });
     }
     if (admin.role !== "admin") {
       return res.status(200).json({
         status: false,
         message: "admin can only delete user accounts.",
-         });
+      });
     }
     const user = await User.findOne({ where: { id: userId } });
-    if (!user || user.isDeleted === 1) {  
+    if (!user || user.isDeleted === 1) {
       return res.status(200).json({
         status: false,
         message: "User not found.",
-         });
+      });
     }
     user.isDeleted = 1;
     await user.save();
     // Instruct client to remove token
     return res.status(200).json({
-        status: true,
-        data:{
-            message: "User account deleted successfully.",
-            
-        },
-         });
+      status: true,
+      data: {
+        message: "User account deleted successfully.",
+
+      },
+    });
   } catch (error) {
     console.error("Error in logout:", error);
     res.status(200).json({
-        status: false,
-        message: "Something went wrong",
-         error: error.message });
+      status: false,
+      message: "Something went wrong",
+      error: error.message
+    });
   }
 };
 
 
-const deleteCase = async(req,res)=>{
+const deleteCase = async (req, res) => {
   const adminId = req.user.id;
   if (!adminId) {
     return res.status(200).json({
@@ -1035,7 +1038,7 @@ const deleteCase = async(req,res)=>{
     }
     caseToDelete.isDeleted = 1;
     await caseToDelete.save();
-    const assignedCase = await userCase.findOne({ where: { caseId: caseId } }); 
+    const assignedCase = await userCase.findOne({ where: { caseId: caseId } });
     if (assignedCase) {
       assignedCase.isDeleted = 1;
       await assignedCase.save();
@@ -1056,14 +1059,14 @@ const deleteCase = async(req,res)=>{
   }
 }
 
-const deleteUser = async(req,res)=>{
+const deleteUser = async (req, res) => {
   const adminId = req.user.id;
   if (!adminId) {
     return res.status(200).json({
       status: false,
       message: "admin ID is required.",
     });
-  } 
+  }
   const { userId } = req.body;
   if (!userId) {
     return res.status(200).json({
@@ -1108,7 +1111,7 @@ const deleteUser = async(req,res)=>{
   }
 }
 
-const adminDashBoard = async(req,res)=>{
+const adminDashBoard = async (req, res) => {
   const userId = req.user.id;
   if (!userId) {
     return res.status(200).json({
@@ -1121,7 +1124,7 @@ const adminDashBoard = async(req,res)=>{
     if (!user || user.isDeleted === 1) {
       return res.status(200).json({
         status: false,
-        message: "User not found",        
+        message: "User not found",
       });
     }
     if (user.role !== "admin") {
@@ -1137,44 +1140,44 @@ const adminDashBoard = async(req,res)=>{
     //     { model: Case, attributes: ["id", "title"] },
     //     { model: User, attributes: ["id", "username", "email","country"] },
     //     // { model: Form, attributes: ["id", "status","percentage"] },
-        
+
     //   ],
     //   order: [["assignedAt", "DESC"]],
     // });
-     // Get all users
+    // Get all users
     const allUsers = await User.findAll({
-      where: { 
+      where: {
         role: "user",
         isDeleted: 0
       },
-      attributes: ['id', 'username', 'email','investigatorName', 'country','company_name','study_name']
+      attributes: ['id', 'username', 'email', 'investigatorName', 'country', 'company_name', 'study_name']
     });
 
-      const userDetails = await Promise.all(allUsers.map(async (user) => {
+    const userDetails = await Promise.all(allUsers.map(async (user) => {
       const assignments = await userCase.findAll({
-        where: { 
+        where: {
           userId: user.id,
           isDeleted: 0
         },
         include: [
-          { 
-            model: Case, 
-            attributes: ["id", "title"] 
+          {
+            model: Case,
+            attributes: ["id", "title"]
           }
         ],
-        attributes: ['formType','assignedAt', 'status', 'percentage', 'updatedAt']
+        attributes: ['formType', 'assignedAt', 'status', 'percentage', 'updatedAt']
       });
-  
+
       return {
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
           country: user.country,
-          investigatorName:user.investigatorName,
-          company_name:user.company_name,
-          study_name:user.study_name,
-          
+          investigatorName: user.investigatorName,
+          company_name: user.company_name,
+          study_name: user.study_name,
+
         },
         caseAssignments: assignments.map(assignment => ({
           case: assignment.Case,
@@ -1186,12 +1189,12 @@ const adminDashBoard = async(req,res)=>{
         }))
       };
     }));
-    
+
     return res.status(200).json({
       status: true,
       data: {
         message: "Dashboard data fetched successfully",
-         dashboardData: userDetails
+        dashboardData: userDetails
       },
     });
   } catch (error) {
@@ -1291,15 +1294,15 @@ const filterbyCompany = async (req, res) => {
         message: "Only admin can view.",
       });
     }
-    const {company_name} = req.body
+    const { company_name } = req.body
     if (!company_name) {
       return res.status(200).json({
-        status:false,
+        status: false,
         message: "company name is required"
       })
     }
     const filteredUsers = await User.findAll({
-      where: { isDeleted: 0 , role: "user" , company_name: company_name},
+      where: { isDeleted: 0, role: "user", company_name: company_name },
       order: [["createdAt", "DESC"]],
     });
     if (filteredUsers.length === 0) {
@@ -1323,9 +1326,9 @@ const filterbyCompany = async (req, res) => {
       error: error.message,
     });
   }
-};        
+};
 
-const editUserDetails = async(req,res)=>{
+const editUserDetails = async (req, res) => {
 
   const adminId = req.user.id;
 
@@ -1369,7 +1372,7 @@ const editUserDetails = async(req,res)=>{
 
     }
 
-    const {userId, investigatorName, username, newPassword, confirmPassword, company_name} = req.body;
+    const { userId, investigatorName, username, newPassword, confirmPassword, company_name } = req.body;
 
     if (!userId) {
 
@@ -1396,7 +1399,7 @@ const editUserDetails = async(req,res)=>{
       });
 
     }
- 
+
     // Prepare update object
 
     const updateObj = {};
@@ -1424,7 +1427,7 @@ const editUserDetails = async(req,res)=>{
       updateObj.password = await bcrypt.hash(newPassword, 10);
 
     }
- 
+
     // Only update if there is something to update
 
     if (Object.keys(updateObj).length === 0) {
@@ -1438,7 +1441,7 @@ const editUserDetails = async(req,res)=>{
       });
 
     }
- 
+
     const updatedProfile = await user.update(updateObj);
 
     return res.status(200).json({
@@ -1482,7 +1485,7 @@ const editUserDetails = async(req,res)=>{
 
 
 
- 
+
 module.exports = {
   viewUsers,
   uploadCase,
@@ -1492,7 +1495,7 @@ module.exports = {
   unAssignCase,
   assignedCases,
   fetchAllCaseData,
-  getAssignedUsersForCase, 
+  getAssignedUsersForCase,
   getTotalAssignedUsers,
   submittedCases,
   filterByCaseId,
@@ -1503,7 +1506,7 @@ module.exports = {
   adminDashBoard,
   filterbyCompany,
   editUserDetails,
-  
+
 };
 
 
