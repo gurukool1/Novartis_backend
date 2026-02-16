@@ -3,7 +3,7 @@ const fieldExtractorService = require('./fieldExtractor.js');
 
 const compareField = (expectedValue, actualValue, validationRule = null) => {
     // Handle null/undefined cases
-    if (expectedValue === null || expectedValue === undefined) {
+    if (expectedValue === null || expectedValue === undefined || expectedValue === '') {
         return {
             isMatch: true,
             deviation: 0,
@@ -160,7 +160,6 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
 
         // Store detailed comparison result
         comparisons.push({
-            fieldPath: path,
             section: section,
             fieldName: fieldExtractorService.getFieldName(path),
             expectedValue: expectedValue,
