@@ -47,29 +47,72 @@ const parseTextToJSON = (textContent) => {
     const lines = textContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
     let currentSection = null;
+    let jsonBuffer = '';
 
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
         // Check if this line is a section header
         const sectionMatch = detectSection(line);
 
         if (sectionMatch) {
+            // Before switching sections, process any buffered JSON
+            if (jsonBuffer && currentSection) {
+                try {
+                    const parsed = JSON.parse(jsonBuffer);
+                    formData[currentSection] = parsed;
+                } catch (e) {
+                    console.error(`Error parsing JSON for section ${currentSection}:`, e);
+                }
+                jsonBuffer = '';
+            }
+
             currentSection = sectionMatch;
             continue;
         }
 
-        // If we're in a section, try to parse field:value pairs
+        // If we're in a section
         if (currentSection) {
-            const fieldData = parseFieldLine(line);
+            // Check if line looks like JSON (starts with { or continues JSON)
+            if (line.startsWith('{') || jsonBuffer) {
+                jsonBuffer += line;
 
-            if (fieldData) {
-                formData[currentSection][fieldData.field] = fieldData.value;
+                // Check if we have a complete JSON object
+                try {
+                    const parsed = JSON.parse(jsonBuffer);
+                    formData[currentSection] = parsed;
+                    jsonBuffer = ''; // Clear buffer after successful parse
+                } catch (e) {
+                    // Not complete yet, continue buffering
+                    // Only clear if we detect it's not going to be valid JSON
+                    if (!line.includes('{') && !line.includes('}') && !line.includes('"') && jsonBuffer.length > 1000) {
+                        console.error(`Clearing invalid JSON buffer for ${currentSection}`);
+                        jsonBuffer = '';
+                    }
+                }
+            } else {
+                // Try to parse as field:value pair
+                const fieldData = parseFieldLine(line);
+
+                if (fieldData) {
+                    formData[currentSection][fieldData.field] = fieldData.value;
+                }
             }
+        }
+    }
+
+    // Process any remaining JSON buffer
+    if (jsonBuffer && currentSection) {
+        try {
+            const parsed = JSON.parse(jsonBuffer);
+            formData[currentSection] = parsed;
+        } catch (e) {
+            console.error(`Error parsing final JSON for section ${currentSection}:`, e);
         }
     }
 
     return formData;
 }
-
 
 const detectSection = (line) => {
     const lineLower = line.toLowerCase().replace(/[^a-z0-9_]/g, '');

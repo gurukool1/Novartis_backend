@@ -1,105 +1,88 @@
-/**
- * Service to calculate evaluation statistics and generate summary
- */
-class EvaluationStatsService {
 
-    /**
-     * Calculate statistics from comparison results
-     * @param {Array} comparisons - Array of comparison objects
-     * @returns {Object} Statistics summary
-     */
-    calculateStats(comparisons) {
-        const totalFields = comparisons.length;
 
-        // Count different statuses
-        const matched = comparisons.filter(c => c.status === 'MATCH').length;
-        const withinRange = comparisons.filter(c => c.status === 'WITHIN_RANGE').length;
-        const acceptable = comparisons.filter(c => c.status === 'ACCEPTABLE').length;
-        const ignored = comparisons.filter(c => c.status === 'IGNORED').length;
+const calculateStats = (comparisons) => {
+    const totalFields = comparisons.length;
 
-        // Total successful validations
-        const totalMatched = matched + withinRange + acceptable + ignored;
+    // Count different statuses
+    const matched = comparisons.filter(c => c.status === 'MATCH').length;
+    const withinRange = comparisons.filter(c => c.status === 'WITHIN_RANGE').length;
+    const acceptable = comparisons.filter(c => c.status === 'ACCEPTABLE').length;
+    const ignored = comparisons.filter(c => c.status === 'IGNORED').length;
 
-        // Mismatches
-        const mismatched = totalFields - totalMatched;
+    // Total successful validations
+    const totalMatched = matched + withinRange + acceptable + ignored;
 
-        // Calculate accuracy percentage
-        const accuracyPercentage = totalFields > 0
-            ? ((totalMatched / totalFields) * 100).toFixed(2)
-            : 0;
+    // Mismatches
+    const mismatched = totalFields - totalMatched;
 
-        return {
-            totalFields,
-            matchedFields: totalMatched,
-            exactMatches: matched,
-            withinRange,
-            acceptable,
-            ignored,
-            mismatchedFields: mismatched,
-            accuracyPercentage: parseFloat(accuracyPercentage)
-        };
-    }
+    // Calculate accuracy percentage
+    const accuracyPercentage = totalFields > 0
+        ? ((totalMatched / totalFields) * 100).toFixed(2)
+        : 0;
 
-    /**
-     * Get only discrepancies (mismatches) from comparisons
-     * @param {Array} comparisons 
-     * @returns {Array} Array of mismatched fields only
-     */
-    getDiscrepancies(comparisons) {
-        const mismatchStatuses = ['MISMATCH', 'OUT_OF_RANGE', 'NOT_ACCEPTABLE'];
-
-        return comparisons
-            .filter(c => mismatchStatuses.includes(c.status))
-            .map(c => ({
-                fieldPath: c.fieldPath,
-                section: c.section,
-                fieldName: c.fieldName,
-                expectedValue: c.expectedValue,
-                actualValue: c.actualValue,
-                deviation: c.deviation,
-                status: c.status,
-                message: c.message,
-                severity: this.calculateSeverity(c.deviation, c.validationType)
-            }));
-    }
-
-    /**
-     * Calculate severity level of mismatch
-     * @param {Number} deviation 
-     * @param {String} validationType 
-     * @returns {String} 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-     */
-    calculateSeverity(deviation, validationType) {
-        if (validationType === 'exact') {
-            return 'HIGH';
-        }
-
-        const absDeviation = Math.abs(deviation);
-
-        if (absDeviation === 0) return 'LOW';
-        if (absDeviation <= 2) return 'LOW';
-        if (absDeviation <= 5) return 'MEDIUM';
-        if (absDeviation <= 10) return 'HIGH';
-        return 'CRITICAL';
-    }
-
-    /**
-     * Group discrepancies by section
-     * @param {Array} discrepancies 
-     * @returns {Object} Grouped by section
-     */
-    groupBySection(discrepancies) {
-        const grouped = {};
-
-        discrepancies.forEach(disc => {
-            if (!grouped[disc.section]) {
-                grouped[disc.section] = [];
-            }
-            grouped[disc.section].push(disc);
-        });
-
-        return grouped;
-    }
+    return {
+        totalFields,
+        matchedFields: totalMatched,
+        exactMatches: matched,
+        withinRange,
+        acceptable,
+        ignored,
+        mismatchedFields: mismatched,
+        accuracyPercentage: parseFloat(accuracyPercentage)
+    };
 }
 
-module.exports = new EvaluationStatsService();
+
+const getDiscrepancies = (comparisons) => {
+    const mismatchStatuses = ['MISMATCH', 'OUT_OF_RANGE', 'NOT_ACCEPTABLE'];
+
+    return comparisons
+        .filter(c => mismatchStatuses.includes(c.status))
+        .map(c => ({
+            fieldPath: c.fieldPath,
+            section: c.section,
+            fieldName: c.fieldName,
+            expectedValue: c.expectedValue,
+            actualValue: c.actualValue,
+            deviation: c.deviation,
+            status: c.status,
+            message: c.message,
+            severity: this.calculateSeverity(c.deviation, c.validationType)
+        }));
+}
+
+const calculateSeverity = (deviation, validationType) => {
+    if (validationType === 'exact') {
+        return 'HIGH';
+    }
+
+    const absDeviation = Math.abs(deviation);
+
+    if (absDeviation === 0) return 'LOW';
+    if (absDeviation <= 2) return 'LOW';
+    if (absDeviation <= 5) return 'MEDIUM';
+    if (absDeviation <= 10) return 'HIGH';
+    return 'CRITICAL';
+}
+
+
+const groupBySection = (discrepancies) => {
+    const grouped = {};
+
+    discrepancies.forEach(disc => {
+        if (!grouped[disc.section]) {
+            grouped[disc.section] = [];
+        }
+        grouped[disc.section].push(disc);
+    });
+
+    return grouped;
+}
+
+
+module.exports = {
+    calculateStats,
+    getDiscrepancies,
+    calculateSeverity,
+    groupBySection
+}

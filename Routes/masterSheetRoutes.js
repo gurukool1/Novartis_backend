@@ -12,7 +12,7 @@ router.post('/upload-docx', verifyToken, upload.single('file'), masterSheetContr
 router.post('/upload-answer-sheet', verifyToken, masterSheetController.uploadAnswerSheet);
 
 // Get master sheet by case ID
-router.get('/get-master-sheet/:caseId', verifyToken, masterSheetController.getByCaseId);
+router.post('/get-master-sheet/:caseId', verifyToken, masterSheetController.getByCaseId);
 
 // Update master sheet
 router.put('/update-master-sheet/:id', verifyToken, masterSheetController.updateMasterSheet);

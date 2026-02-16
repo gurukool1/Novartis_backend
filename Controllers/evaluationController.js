@@ -15,7 +15,7 @@ class EvaluationController {
             const { formId, userCaseId, caseId } = req.body;
 
             if (!formId || !userCaseId || !caseId) {
-                return res.status(400).json({
+                return res.status(200).json({
                     success: false,
                     message: 'Missing required fields: formId, userCaseId, caseId'
                 });
@@ -33,7 +33,7 @@ class EvaluationController {
 
         } catch (error) {
             console.error('Error in triggerEvaluation:', error);
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Error running evaluation',
                 error: error.message
@@ -77,7 +77,7 @@ class EvaluationController {
 
         } catch (error) {
             console.error('Error in getReport:', error);
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Error fetching evaluation report',
                 error: error.message
@@ -120,7 +120,7 @@ class EvaluationController {
 
         } catch (error) {
             console.error('Error in getReportByUserCase:', error);
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Error fetching evaluation report',
                 error: error.message

@@ -103,6 +103,7 @@ const submitForm = async (req, res) => {
       { where: { caseId: caseId, userId: userId } }
     );
 
+
     //  const baseUrl = req.protocol + '://' + req.get('host');
     // const fileUrl = caseData.file_path
     //   ? baseUrl + '/' + caseData.file_path.replace(/\\/g, '/')
