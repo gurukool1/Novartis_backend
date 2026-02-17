@@ -301,7 +301,7 @@ const getByCaseId = async (req, res) => {
 
         if (!user) {
             return res.status(200).json({
-                success: false,
+                status: false,
                 message: 'Unauthorized access'
             });
         }
@@ -312,20 +312,21 @@ const getByCaseId = async (req, res) => {
 
         if (!masterSheet) {
             return res.status(404).json({
-                success: false,
+                status: false,
                 message: `No master answer sheet found for case ${caseId}`
             });
         }
 
         return res.status(200).json({
-            success: true,
+            status: true,
+            message: 'Master answer sheet retrieved successfully',     
             data: masterSheet
         });
 
     } catch (error) {
         console.error('Error fetching master sheet:', error);
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Error fetching master answer sheet',
             error: error.message
         });
@@ -337,8 +338,9 @@ const getByCaseId = async (req, res) => {
 const updateMasterSheet = async (req, res) => {
     const userId = req.user.id;
     try {
-
-        const { id, formData } = req.body;
+        const { id } = req.params;
+        const { formData } = req.body;
+     console.log("formData in updateMasterSheet:", formData);
 
         const user = await User.findOne({
             where: { id: userId, role: 'admin' }

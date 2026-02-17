@@ -15,7 +15,7 @@ router.post('/upload-answer-sheet', verifyToken, masterSheetController.uploadAns
 router.post('/get-master-sheet/:caseId', verifyToken, masterSheetController.getByCaseId);
 
 // Update master sheet
-router.put('/update-master-sheet/:id', verifyToken, masterSheetController.updateMasterSheet);
+router.post('/update-master-sheet/:id', verifyToken, masterSheetController.updateMasterSheet);
 
 // Delete master sheet (soft delete)
 router.delete('/delete-master-sheet/:id', verifyToken, masterSheetController.deleteMasterSheet);
