@@ -18,7 +18,7 @@ router.post('/get-master-sheet/:caseId', verifyToken, masterSheetController.getB
 router.post('/update-master-sheet/:id', verifyToken, masterSheetController.updateMasterSheet);
 
 // Delete master sheet (soft delete)
-router.delete('/delete-master-sheet/:id', verifyToken, masterSheetController.deleteMasterSheet);
+router.post('/delete-master-sheet/:id', verifyToken, masterSheetController.deleteMasterSheet);
 
 
 module.exports = router;

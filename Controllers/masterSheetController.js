@@ -1,5 +1,6 @@
 const { User } = require('../models');
-const MasterAnswerSheet = require('../models/masterAnswerSheet');
+// const MasterAnswerSheet = require('../models/masterAnswerSheet');
+const MasterAnswerSheet=require('../models/MasterAnswerSheet');
 const docxParserService = require('../services/docxParser');
 
 
@@ -123,7 +124,7 @@ const uploadDocx = async (req, res) => {
         // Check if file was uploaded
         if (!req.file) {
             return res.status(400).json({
-                success: false,
+                status: false,
                 message: 'No file uploaded. Please upload a .docx file.'
             });
         }
@@ -133,7 +134,7 @@ const uploadDocx = async (req, res) => {
             await docxParserService.deleteFile(req.file.path);
 
             return res.status(400).json({
-                success: false,
+                status: false,
                 message: 'Missing required fields: caseId'
             });
         }
@@ -150,7 +151,7 @@ const uploadDocx = async (req, res) => {
             await docxParserService.deleteFile(req.file.path);
 
             return res.status(400).json({
-                success: false,
+                status: false,
                 message: `Master answer sheet already exists for case ${caseId}. Please delete or update the existing one.`
             });
         }
@@ -176,9 +177,10 @@ const uploadDocx = async (req, res) => {
         await docxParserService.deleteFile(req.file.path);
 
         return res.status(201).json({
-            success: true,
-            message: 'Master answer sheet created successfully from .docx file',
+            status: true,
+              message: 'Master answer sheet created successfully from .docx file',
             data: {
+              
                 id: masterSheet.id,
                 caseId: masterSheet.caseId,
                 totalFields: validation.totalFields,
@@ -196,7 +198,7 @@ const uploadDocx = async (req, res) => {
         }
 
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Error processing .docx file',
             error: error.message
         });
@@ -204,88 +206,98 @@ const uploadDocx = async (req, res) => {
 }
 
 const uploadAnswerSheet = async (req, res) => {
-    const userId = req.user.id;
-    try {
-        const { caseId, formData } = req.body;
+  const userId = req.user.id;
+  try {
+    const { caseId, formData} = req.body;
 
-        if (!caseId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: caseId'
-            });
-        }
-
-        const createdBy = await User.findOne({
-            where: { id: userId, role: 'admin' }
-        });
-
-        if (!createdBy) {
-            return res.status(403).json({
-                success: false,
-                message: 'Unauthorized access'
-            });
-        }
-        // Check if already exists
-        const existing = await MasterAnswerSheet.findOne({
-            where: { caseId: caseId, isDeleted: 0 }
-        });
-
-        if (existing) {
-            return res.status(400).json({
-                success: false,
-                message: `Master answer sheet already exists for case ${caseId}`
-            });
-        }
-
-        const form = await MasterAnswerSheet.create({
-            caseId,
-            createdBy: createdBy.dataValues.id,
-            MMT_8_initial: formData.MMT_8_initial || {},
-            CDASI_Activity_initial: formData.CDASI_Activity_initial || {},
-            CDASI_Damage_initial: formData.CDASI_Damage_initial || {},
-            Gottron_Hands_initial: formData.Gottron_Hands_initial || {},
-            Periungual_initial: formData.Periungual_initial || {},
-            Alopecia_initial: formData.Alopecia_initial || {},
-            MDAAT_initial: formData.MDAAT_initial || {},
-            MMT_8_followUp: formData.MMT_8_followUp || {},
-            CDASI_Activity_followUp: formData.CDASI_Activity_followUp || {},
-            CDASI_Damage_followUp: formData.CDASI_Damage_followUp || {},
-            Gottron_Hands_followUp: formData.Gottron_Hands_followUp || {},
-            Periungual_followUp: formData.Periungual_followUp || {},
-            Alopecia_followUp: formData.Alopecia_followUp || {},
-            MDAAT_followUp: formData.MDAAT_followUp || {},
-            Physician_initial: formData.Physician_initial || {},
-            Physician_followUp: formData.Physician_followUp || {},
-            isDeleted: 0
-        });
-
-        // // Create master sheet
-        // const masterSheet = await MasterAnswerSheet.create({
-        //     caseId,
-        //     createdBy,
-        //     ...formData,
-        //     isDeleted: 0
-        // });
-
-        return res.status(201).json({
-            success: true,
-            message: 'Master answer sheet created successfully',
-            data: {
-                id: form.id,
-                caseId: form.caseId,
-                createdAt: form.createdAt
-            }
-        });
-
-    } catch (error) {
-        console.error('Error creating master sheet:', error);
-        return res.status(200).json({
-            success: false,
-            message: 'Error creating master answer sheet',
-            error: error.message
-        });
+    if (!caseId) {
+      return res.status(400).json({
+        status: false,
+        message: 'Missing required fields: caseId'
+      });
     }
-}
+
+    const createdBy = await User.findOne({
+      where: { id: userId, role: 'admin' }
+    });
+
+    if (!createdBy) {
+      return res.status(403).json({
+        status: false,
+        message: 'Unauthorized access'
+      });
+    }
+
+    // Find existing record regardless of isDeleted
+    const existing = await MasterAnswerSheet.findOne({
+      where: {caseId: caseId }
+    });
+
+    if (existing) {
+      if (existing.isDeleted === 1) {
+        // Soft deleted record found → update and reactivate
+        await existing.update({
+          ...formData,
+          createdBy: createdBy.dataValues.id,
+          isDeleted: 0
+        });
+
+        return res.status(200).json({
+          status: true,
+          message: `Master answer sheet for case ${caseId} reactivated and updated successfully`,
+          data: existing
+        });
+      } else {
+        // Record exists and is active → reject duplicate
+        return res.status(400).json({
+          status: false,
+          message: `Master answer sheet already exists for case ${caseId}`
+        });
+      }
+    }
+
+    // No existing record → create new
+    const form = await MasterAnswerSheet.create({
+      caseId,
+      createdBy: createdBy.dataValues.id,
+      MMT_8_initial: formData.MMT_8_initial || {},
+      CDASI_Activity_initial: formData.CDASI_Activity_initial || {},
+      CDASI_Damage_initial: formData.CDASI_Damage_initial || {},
+      Gottron_Hands_initial: formData.Gottron_Hands_initial || {},
+      Periungual_initial: formData.Periungual_initial || {},
+      Alopecia_initial: formData.Alopecia_initial || {},
+      MDAAT_initial: formData.MDAAT_initial || {},
+      MMT_8_followUp: formData.MMT_8_followUp || {},
+      CDASI_Activity_followUp: formData.CDASI_Activity_followUp || {},
+      CDASI_Damage_followUp: formData.CDASI_Damage_followUp || {},
+      Gottron_Hands_followUp: formData.Gottron_Hands_followUp || {},
+      Periungual_followUp: formData.Periungual_followUp || {},
+      Alopecia_followUp: formData.Alopecia_followUp || {},
+      MDAAT_followUp: formData.MDAAT_followUp || {},
+      Physician_initial: formData.Physician_initial || {},
+      Physician_followUp: formData.Physician_followUp || {},
+      isDeleted: 0
+    });
+
+    return res.status(201).json({
+      status: true,
+      message: 'Master answer sheet created successfully',
+      data: {
+        id: form.id,
+        caseId: form.caseId,
+        createdAt: form.createdAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating master sheet:', error);
+    return res.status(200).json({
+      status: false,
+      message: 'Error creating master answer sheet',
+      error: error.message
+    });
+  }
+};
 
 
 const getByCaseId = async (req, res) => {
@@ -339,8 +351,15 @@ const updateMasterSheet = async (req, res) => {
     const userId = req.user.id;
     try {
         const { id } = req.params;
-        const { formData } = req.body;
-     console.log("formData in updateMasterSheet:", formData);
+        const {caseId, formData } = req.body;
+
+        if(!caseId || !formData) {
+            return res.status(200).json({
+                success: false,
+                message: 'Missing required fields: caseId, formData'
+            });
+        }
+    //  console.log("formData in updateMasterSheet:", formData);
 
         const user = await User.findOne({
             where: { id: userId, role: 'admin' }
@@ -352,8 +371,8 @@ const updateMasterSheet = async (req, res) => {
                 message: 'Unauthorized access'
             });
         }
-
-        const masterSheet = await MasterAnswerSheet.findAll({
+// i have changed this findall to findone
+        const masterSheet = await MasterAnswerSheet.findOne({
             where: { id: id, isDeleted: 0 }
         })
 
@@ -381,11 +400,11 @@ const updateMasterSheet = async (req, res) => {
             MDAAT_followUp: formData.MDAAT_followUp || masterSheet.MDAAT_followUp,
             Physician_initial: formData.Physician_initial || masterSheet.Physician_initial,
             Physician_followUp: formData.Physician_followUp || masterSheet.Physician_followUp,
-            percentage: percentage,
+            // percentage: percentage,
         });
 
         return res.status(200).json({
-            success: true,
+            status: true,
             message: 'Master answer sheet updated successfully',
             data: updatedSheet
         });
@@ -393,7 +412,7 @@ const updateMasterSheet = async (req, res) => {
     } catch (error) {
         console.error('Error updating master sheet:', error);
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Error updating master answer sheet',
             error: error.message
         });
@@ -401,14 +420,16 @@ const updateMasterSheet = async (req, res) => {
 }
 
 const deleteMasterSheet = async (req, res) => {
+    // const userId = req.user.id;
     try {
         const { id } = req.params;
 
         const masterSheet = await MasterAnswerSheet.findByPk(id);
+        // console.log("Master sheet to delete:", masterSheet);
 
         if (!masterSheet) {
             return res.status(404).json({
-                success: false,
+                status: false,
                 message: 'Master answer sheet not found'
             });
         }
@@ -416,14 +437,14 @@ const deleteMasterSheet = async (req, res) => {
         await masterSheet.update({ isDeleted: 1 });
 
         return res.status(200).json({
-            success: true,
+            status: true,
             message: 'Master answer sheet deleted successfully'
         });
 
     } catch (error) {
         console.error('Error deleting master sheet:', error);
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Error deleting master answer sheet',
             error: error.message
         });

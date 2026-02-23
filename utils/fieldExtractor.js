@@ -68,7 +68,7 @@ const extractSection = (path) => {
  */
 const getFieldName = (path) => {
     const parts = path.split('.');
-    return parts.slice(1).join('.');
+    return parts.slice(0).join('.');
 }
 
 /**

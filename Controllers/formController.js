@@ -62,7 +62,7 @@ const submitForm = async (req, res) => {
         message: "Case not found",
       });
     }
-    const existingForm = await Form.findOne({ where: { userCaseId: caseData.dataValues.id, isDeleted: 0 } });
+    const existingForm = await Form.findOne({ where: { userCaseId: userCase.id, isDeleted: 0 } });
     console.log("existingForm", existingForm);
     if (existingForm) {
       return res.status(200).json({
@@ -76,7 +76,7 @@ const submitForm = async (req, res) => {
     const form = await Form.create({
       caseId,
       userId,
-      userCaseId: caseData.dataValues.id,
+      userCaseId: userCase.id,
       MMT_8_initial: formdata.MMT_8_initial || {},
       CDASI_Activity_initial: formdata.CDASI_Activity_initial || {},
       CDASI_Damage_initial: formdata.CDASI_Damage_initial || {},

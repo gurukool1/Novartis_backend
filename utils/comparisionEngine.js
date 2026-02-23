@@ -2,13 +2,33 @@ const fieldExtractorService = require('./fieldExtractor.js');
 
 
 const compareField = (expectedValue, actualValue, validationRule = null) => {
-    // Handle null/undefined cases
-    if (expectedValue === null || expectedValue === undefined || expectedValue === '') {
+    // Handle null/undefined cases for expected value
+    if (expectedValue === null || expectedValue === undefined) {
         return {
             isMatch: true,
             deviation: 0,
             status: 'SKIPPED',
             message: 'Expected value is null'
+        };
+    }
+
+    // Handle case where actual value is missing from submission
+    if (actualValue === null || actualValue === undefined) {
+        return {
+            isMatch: false,
+            deviation: 0,
+            status: 'MISMATCH',
+            message: 'Field not found in submission'
+        };
+    }
+
+    // Handle case where entire section was submitted but empty
+    if (actualValue === 'NOT_SUBMITTED') {
+        return {
+            isMatch: false,
+            deviation: 0,
+            status: 'MISMATCH',
+            message: 'Section was not filled by user'
         };
     }
 
@@ -126,6 +146,11 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
     const masterFields = fieldExtractorService.flattenJSON(masterData);
     const userFields = fieldExtractorService.flattenJSON(userData);
 
+    // ===== PATH DEBUG =====
+    console.log('\n[DEBUG] Master field paths:', masterFields.map(f => f.path));
+    console.log('[DEBUG] User field paths:', userFields.map(f => f.path));
+    // ======================
+
     // Create a map of validation rules by field path
     const rulesMap = {};
     validationRules.forEach(rule => {
@@ -144,9 +169,23 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
             return;
         }
 
-        // Find corresponding field in user data
+        // Find corresponding field in user data (exact path match)
         const userField = userFields.find(f => f.path === path);
-        const actualValue = userField ? userField.value : undefined;
+
+        let actualValue = null;
+
+        if (userField) {
+            actualValue = userField.value;
+        } else {
+            // Check if the user's entire SECTION was submitted but empty ({})
+            // In that case, the user's path would be just the section name (e.g. 'MMT_8_initial')
+            const sectionName = section; // e.g. 'MMT_8_initial'
+            const userSectionAsLeaf = userFields.find(f => f.path === sectionName && f.isEmpty);
+            if (userSectionAsLeaf) {
+                actualValue = 'NOT_SUBMITTED'; // Whole section is empty
+            }
+            // else actualValue stays null = field completely missing from submission
+        }
 
         // Get validation rule for this field
         const validationRule = rulesMap[path] || null;

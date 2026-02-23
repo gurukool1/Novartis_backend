@@ -35,9 +35,28 @@ const convertToJSON = (formInstance) => {
     const formData = {};
     const sections = getFormSections();
 
+    // Extract raw plain data from Sequelize model instance.
+    // Direct bracket notation on a Sequelize instance can return undefined
+    // for JSON columns — .toJSON() / .get({ plain: true }) gives proper values.
+    const rawData = (typeof formInstance.toJSON === 'function')
+        ? formInstance.toJSON()
+        : formInstance;
+
     sections.forEach(section => {
-        if (formInstance[section] !== undefined && formInstance[section] !== null) {
-            formData[section] = formInstance[section];
+        const value = rawData[section];
+
+        if (value === undefined || value === null) return;
+
+        // Some DB drivers return JSON columns as strings — parse them if needed.
+        if (typeof value === 'string') {
+            try {
+                formData[section] = JSON.parse(value);
+            } catch (e) {
+                console.warn(`[FormDataConverter] Could not parse section "${section}" as JSON. Raw value:`, value);
+                formData[section] = value;
+            }
+        } else {
+            formData[section] = value;
         }
     });
 

@@ -12,9 +12,11 @@ const triggerEvaluation = async (req, res) => {
     try {
         const { formId, caseId } = req.body;
 
+
+
         if (!formId || !caseId) {
             return res.status(200).json({
-                success: false,
+                status: false,
                 message: 'Missing required fields: formId, caseId'
             });
         }
@@ -30,16 +32,16 @@ const triggerEvaluation = async (req, res) => {
 
         return res.status(200).json(
             {
-                success: true,
-                form: formData,
-                result: result
+                status: true,
+                data:{ formData,
+                  result:  result}
             }
         );
 
     } catch (error) {
         console.error('Error in triggerEvaluation:', error);
         return res.status(200).json({
-            success: false,
+            status: false,
             message: 'Error running evaluation',
             error: error.message
         });
@@ -61,6 +63,7 @@ const getReport = async (req, res) => {
                 message: 'Evaluation report not found'
             });
         }
+        console.log('rahul:', report.discrepancies);
 
         // Group discrepancies by section for better readability
         const groupedDiscrepancies = evaluationStats.groupBySection(report.discrepancies);

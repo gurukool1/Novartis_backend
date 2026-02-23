@@ -35,8 +35,20 @@ const runEvaluation = async (formId, caseId, evaluatedBy = null) => {
         const masterData = formDataConverter.convertToJSON(masterSheet);
         const userData = formDataConverter.convertToJSON(userForm);
 
-        console.log(`Master data sections: ${Object.keys(masterData).length}`);
-        console.log(`User data sections: ${Object.keys(userData).length}`);
+        console.log(`Master data sections: ${Object.keys(masterData).length}`, Object.keys(masterData));
+        console.log(`User data sections: ${Object.keys(userData).length}`, Object.keys(userData));
+
+        // ===== FULL DEBUG: Show ALL section values for user data =====
+        console.log('\n[DEBUG] ===== ALL USER SECTION DATA =====');
+        Object.entries(userData).forEach(([section, value]) => {
+            console.log(`[DEBUG] User[${section}]:`, JSON.stringify(value));
+        });
+
+        console.log('\n[DEBUG] ===== ALL MASTER SECTION DATA =====');
+        Object.entries(masterData).forEach(([section, value]) => {
+            console.log(`[DEBUG] Master[${section}]:`, JSON.stringify(value));
+        });
+        // ==========================================================
 
         // Step 4: Get validation rules
         const validationRules = await getValidationRules(caseId);
