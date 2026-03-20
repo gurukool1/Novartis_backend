@@ -7,8 +7,8 @@ const path = require("path");
 const adminController = require("../Controllers/adminController");
 const verifyToken = require("../Middleware/verifyToken");
 const upload = require("../Middleware/multer");
- const registerSchema = require("../validations/registrationSchema")
- const validate = require('../Middleware/validate');
+const registerSchema = require("../validations/registrationSchema")
+const validate = require('../Middleware/validate');
 
 
 const router = express.Router();
@@ -20,7 +20,7 @@ const router = express.Router();
 function multerErrorHandler(req, res, next) {
   upload.single("file")(req, res, function (err) {
     if (err) {
-      return res.status(400).json({
+      return res.status(200).json({
         status: false,
         message: err.message || "File upload error",
       });
@@ -31,7 +31,7 @@ function multerErrorHandler(req, res, next) {
 
 
 //router.post("/admin/upload-case",verifyToken, upload.single("file"), adminController.uploadCase);
-router.post("/admin/view-users",verifyToken, adminController.viewUsers);
+router.post("/admin/view-users", verifyToken, adminController.viewUsers);
 router.post('/admin/upload-case', verifyToken, multerErrorHandler, adminController.uploadCase);
 router.post("/admin/view-cases", verifyToken, adminController.viewCases);
 router.post("/admin/assign-case", verifyToken, adminController.assignCase);
