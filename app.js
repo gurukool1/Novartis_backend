@@ -56,12 +56,12 @@ app.use(errorHandler);
 
 const start = async () => {
   connectDB();
-  //  await User.sync({ force: true });
-  //   await Case.sync({ force: true });
-  //   await UserCase.sync({ force: true });
-  //   await Faq.sync({ force: true });
-  //   await Token.sync({ force: true });
-  //     await Forms.sync({ force: true });
+  // await User.sync({ force: true });
+  // await Case.sync({ force: true });
+  // await UserCase.sync({ force: true });
+  // await Faq.sync({ force: true });
+  // await Token.sync({ force: true });
+  // await Forms.sync({ force: true });
   // await EvaluationReport.sync({ force: true });
   // await ValidationRule.sync({ force: true });
   // await MasterAnswerSheet.sync({ force: true });

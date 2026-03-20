@@ -200,10 +200,8 @@ const viewCases = async (req, res) => {
       });
     }
 
-    //  const casesWithFileUrl = totalCases.map(c => ({
-    //   ...c.dataValues,
 
-    // }));
+
     return res.status(200).json({
       status: true,
       data: {
@@ -799,11 +797,11 @@ const submittedCases = async (req, res) => {
 
     const casesWithFileUrlAndFormId = await Promise.all(submittedCases.map(async (c) => {
       // Get formId for each case based on caseId and userId
-      const form = await Form.findOne({ where: { caseId: c.Case.id, userId: c.User.id } });
+      const form = await Form.findOne({ where: { caseId: c.Case.id, userId: c.User.id, userCaseId: c.id } });
 
       return {
         ...c.dataValues,
-        formId: form ? c.dataValues.id : null,
+        formId: form ? form.id : null,
 
       };
     }));

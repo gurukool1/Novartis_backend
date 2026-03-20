@@ -3,7 +3,7 @@
 //     await schema.validateAsync(req.body, { abortEarly: false });
 //     next();
 //   } catch (err) {
-//     return res.status(400).json({
+//     return res.status(200).json({
 //       message: 'Validation failed',
 //       errors: err.details.map(detail => detail.message)
 //     });
@@ -33,4 +33,3 @@ const validate = (schema) => async (req, res, next) => {
 };
 
 module.exports = validate;
- 

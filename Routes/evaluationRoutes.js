@@ -10,7 +10,7 @@ const verifyToken = require('../Middleware/verifyToken');
 router.post('/evaluation/trigger', verifyToken, evaluationController.triggerEvaluation);
 
 // Get evaluation report by evaluation ID
-router.get('/evaluation/report/:evaluationId', verifyToken, evaluationController.getReport);
+router.post('/evaluation/report/:evaluationId', verifyToken, evaluationController.getReport);
 
 // // Get evaluation report by user case ID
 // router.get('/evaluation/report/user-case/:userCaseId', evaluationController.getReportByUserCase);

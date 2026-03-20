@@ -1,6 +1,7 @@
 const fieldExtractorService = require('./fieldExtractor.js');
 
 
+
 const compareField = (expectedValue, actualValue, validationRule = null) => {
     // Handle null/undefined cases for expected value
     if (expectedValue === null || expectedValue === undefined) {
@@ -66,13 +67,45 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
 }
 
 /**
- * Exact match comparison
+ * Exact or Default match comparison
  */
 const exactMatch = (expected, actual) => {
-    // Convert to string for comparison to handle number vs string
+    // Convert to string for comparison
     const expectedStr = String(expected).trim();
     const actualStr = String(actual).trim();
 
+    // Check if both can be parsed as valid numbers
+    const expectedNum = Number(expectedStr);
+    const actualNum = Number(actualStr);
+
+    const isNumericExpected = expectedStr !== '' && !isNaN(expectedNum);
+    const isNumericActual = actualStr !== '' && !isNaN(actualNum);
+
+    if (isNumericExpected && isNumericActual) {
+        const deviation = actualNum - expectedNum;
+        const absDeviation = Math.abs(deviation);
+        const isMatch = absDeviation <= 2;
+
+        let status = 'RANGED_MISMATCH';
+        let message = 'Values are outside acceptable range (±2)';
+
+        if (absDeviation === 0) {
+            status = 'MATCH';
+            message = 'Exact match';
+        } else if (isMatch) {
+            status = 'RANGED_MATCH';
+            message = 'Match within acceptable range of 2';
+        }
+
+        return {
+            isMatch,
+            deviation,
+            status,
+            message
+        };
+    }
+
+    // Fallback to exact string match
     const isMatch = expectedStr === actualStr;
 
     return {
@@ -187,15 +220,29 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
             // else actualValue stays null = field completely missing from submission
         }
 
+        // Check if the value is essentially un-submitted or null
+        const isNotSubmitted = 
+            actualValue === null || 
+            actualValue === undefined || 
+            actualValue === 'NOT_SUBMITTED' || 
+            String(actualValue).trim() === '';
+
+        // Neglect it from the evaluation if not submitted
+        if (isNotSubmitted) {
+            return;
+        }
+
         // Get validation rule for this field
         const validationRule = rulesMap[path] || null;
 
         // Perform comparison
-        const comparisonResult = compareField(
-            expectedValue,
-            actualValue,
-            validationRule
-        );
+        const
+
+            comparisonResult = compareField(
+                expectedValue,
+                actualValue,
+                validationRule
+            );
 
         // Store detailed comparison result
         comparisons.push({

@@ -4,7 +4,7 @@ const User = require("./userModel");
 const UserCase = require("./userCaseModel");
 
 const Case = sequelize.define("Case", {
-  
+
   title: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -13,7 +13,7 @@ const Case = sequelize.define("Case", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  pdfUrl:{
+  pdfUrl: {
     type: DataTypes.STRING,
     allowNull: true,
   },
@@ -25,15 +25,22 @@ const Case = sequelize.define("Case", {
       onDelete: "CASCADE",
     },
   },
+  isMasterSheetPresent: {
+    type: DataTypes.TINYINT,
+    defaultValue: 0,
+    validate: {
+      isIn: [[0, 1]],
+    },
+  },
   // formType: {
   //   type: DataTypes.STRING,
   //   allowNull: true
   // },
-  isDeleted:{
+  isDeleted: {
     type: DataTypes.TINYINT,
-    defaultValue: 0,  
+    defaultValue: 0,
     validate: {
-      isIn: [[0, 1]], 
+      isIn: [[0, 1]],
     },
   },
   // isAssigned: {
@@ -64,11 +71,11 @@ const Case = sequelize.define("Case", {
 
 Case.associate = (models) => {
   Case.belongsToMany(models.User, {
-    through: {model:models.UserCase, unique:false },
+    through: { model: models.UserCase, unique: false },
 
     foreignKey: "caseId",
     otherKey: "userId",
-   // onDelete: "CASCADE", // This ensures that when a case is deleted, all UserCase records are deleted too
+    // onDelete: "CASCADE", // This ensures that when a case is deleted, all UserCase records are deleted too
   });
 };
 

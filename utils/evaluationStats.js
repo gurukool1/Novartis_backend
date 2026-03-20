@@ -6,11 +6,12 @@ const calculateStats = (comparisons) => {
     // Count different statuses
     const matched = comparisons.filter(c => c.status === 'MATCH').length;
     const withinRange = comparisons.filter(c => c.status === 'WITHIN_RANGE').length;
+    const rangedMatch = comparisons.filter(c => c.status === 'RANGED_MATCH').length;
     const acceptable = comparisons.filter(c => c.status === 'ACCEPTABLE').length;
     const ignored = comparisons.filter(c => c.status === 'IGNORED').length;
 
     // Total successful validations
-    const totalMatched = matched + withinRange + acceptable + ignored;
+    const totalMatched = matched + withinRange + rangedMatch + acceptable + ignored;
 
     // Mismatches
     const mismatched = totalFields - totalMatched;
@@ -25,6 +26,7 @@ const calculateStats = (comparisons) => {
         matchedFields: totalMatched,
         exactMatches: matched,
         withinRange,
+        rangedMatch,
         acceptable,
         ignored,
         mismatchedFields: mismatched,
@@ -34,7 +36,7 @@ const calculateStats = (comparisons) => {
 
 
 const getDiscrepancies = (comparisons) => {
-    const mismatchStatuses = ['MISMATCH', 'OUT_OF_RANGE', 'NOT_ACCEPTABLE'];
+    const mismatchStatuses = ['MISMATCH', 'OUT_OF_RANGE', 'NOT_ACCEPTABLE', 'RANGED_MISMATCH'];
 
     return comparisons
         .filter(c => mismatchStatuses.includes(c.status))
@@ -52,11 +54,7 @@ const getDiscrepancies = (comparisons) => {
 }
 
 const calculateSeverity = (deviation, validationType) => {
-    if (validationType === 'exact') {
-        return 'HIGH';
-    }
-
-    const absDeviation = Math.abs(deviation);
+    const absDeviation = Math.abs(deviation || 0);
 
     if (absDeviation === 0) return 'LOW';
     if (absDeviation <= 2) return 'LOW';
