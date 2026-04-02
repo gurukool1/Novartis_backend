@@ -33,6 +33,60 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
         };
     }
 
+    // New logic for min-max range expected value
+    if (expectedValue && typeof expectedValue === 'object' && 'min' in expectedValue && 'max' in expectedValue) {
+        if (String(actualValue).trim().toUpperCase() === 'NA') {
+            return {
+                isMatch: false,
+                deviation: 0,
+                status: 'MISMATCH',
+                message: `Expected within range (${expectedValue.min}-${expectedValue.max}) but got NA`
+            };
+        }
+
+        const expectedMin = parseFloat(expectedValue.min);
+        const expectedMax = parseFloat(expectedValue.max);
+        const actualNum = parseFloat(actualValue);
+
+        if (isNaN(actualNum)) {
+            return {
+                isMatch: false,
+                deviation: 0,
+                status: 'MISMATCH',
+                message: 'Invalid actual value (must be numeric)'
+            };
+        }
+
+        const isMatch = actualNum >= expectedMin && actualNum <= expectedMax;
+
+        let deviation = 0;
+        if (actualNum < expectedMin) {
+            deviation = parseFloat((actualNum - expectedMin).toFixed(2));
+        } else if (actualNum > expectedMax) {
+            deviation = parseFloat((actualNum - expectedMax).toFixed(2));
+        }
+
+        return {
+            isMatch,
+            deviation,
+            status: isMatch ? 'RANGED_MATCH' : 'RANGED_MISMATCH',
+            message: isMatch 
+                ? `Match within acceptable range (${expectedMin} - ${expectedMax})` 
+                : `Values are outside acceptable range (${expectedMin} - ${expectedMax})`
+        };
+    }
+
+    // New logic when expected value is exactly 'NA'
+    if (String(expectedValue).trim().toUpperCase() === 'NA') {
+        const isMatch = String(actualValue).trim().toUpperCase() === 'NA';
+        return {
+            isMatch,
+            deviation: 0,
+            status: isMatch ? 'MATCH' : 'MISMATCH',
+            message: isMatch ? 'Exact match (NA)' : `Expected NA but got ${actualValue}`
+        };
+    }
+
     // If no validation rule, default to exact match
     const validationType = validationRule?.validationType || 'exact';
 

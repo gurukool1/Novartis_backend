@@ -18,8 +18,17 @@ const flattenJSON = (jsonData, parentPath = '') => {
 
         // If value is an object and not null, recurse
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            // Check if it's a min-max range object
+            if ('min' in value && 'max' in value && Object.keys(value).length === 2) {
+                fields.push({
+                    path: currentPath,
+                    value: value,
+                    section: extractSection(currentPath),
+                    isEmpty: false
+                });
+            }
             // Check if empty object
-            if (Object.keys(value).length === 0) {
+            else if (Object.keys(value).length === 0) {
                 fields.push({
                     path: currentPath,
                     value: null,
