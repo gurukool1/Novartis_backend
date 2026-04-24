@@ -33,8 +33,75 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
         };
     }
 
-    // New logic for min-max range expected value
+    // New logic for min-max range expected value (with optional defaultSelection)
     if (expectedValue && typeof expectedValue === 'object' && 'min' in expectedValue && 'max' in expectedValue) {
+
+        // If both min and max are null, use defaultSelection for comparison
+        if ((expectedValue.min === null || expectedValue.min === undefined || expectedValue.min === '') &&
+            (expectedValue.max === null || expectedValue.max === undefined || expectedValue.max === '')) {
+            
+            const defaultSelection = expectedValue.defaultSelection;
+
+            if (!defaultSelection) {
+                return {
+                    isMatch: true,
+                    deviation: 0,
+                    status: 'SKIPPED',
+                    message: 'Expected value is null (no min, max, or defaultSelection)'
+                };
+            }
+
+            const actualStr = String(actualValue).trim().toUpperCase();
+
+            // defaultSelection = "0" → only 0 is correct
+            if (defaultSelection === '0') {
+                const isMatch = actualStr === '0';
+                return {
+                    isMatch,
+                    deviation: 0,
+                    status: isMatch ? 'MATCH' : 'MISMATCH',
+                    message: isMatch ? 'Exact match (defaultSelection: 0)' : `Expected 0 (defaultSelection) but got ${actualValue}`
+                };
+            }
+
+            // defaultSelection = "NA" → only NA is correct
+            if (defaultSelection.toUpperCase() === 'NA') {
+                const isMatch = actualStr === 'NA';
+                return {
+                    isMatch,
+                    deviation: 0,
+                    status: isMatch ? 'MATCH' : 'MISMATCH',
+                    message: isMatch ? 'Exact match (defaultSelection: NA)' : `Expected NA (defaultSelection) but got ${actualValue}`
+                };
+            }
+
+            // defaultSelection = "0&NA" or "0/NA" → both 0 and NA are correct
+            const dsUpper = defaultSelection.toUpperCase();
+            if (dsUpper === '0&NA' || dsUpper === '0/NA') {
+                const isMatch = actualStr === '0' || actualStr === 'NA';
+                return {
+                    isMatch,
+                    deviation: 0,
+                    status: isMatch ? 'MATCH' : 'MISMATCH',
+                    message: isMatch
+                        ? `Match (defaultSelection: 0&NA, user answered ${actualValue})`
+                        : `Expected 0 or NA (defaultSelection: 0&NA) but got ${actualValue}`
+                };
+            }
+
+            // Fallback for unknown defaultSelection values — exact match
+            const isMatch = actualStr === String(defaultSelection).trim().toUpperCase();
+            return {
+                isMatch,
+                deviation: 0,
+                status: isMatch ? 'MATCH' : 'MISMATCH',
+                message: isMatch
+                    ? `Match (defaultSelection: ${defaultSelection})`
+                    : `Expected ${defaultSelection} (defaultSelection) but got ${actualValue}`
+            };
+        }
+
+        // min and max have values — proceed with existing range comparison
         if (String(actualValue).trim().toUpperCase() === 'NA') {
             return {
                 isMatch: false,

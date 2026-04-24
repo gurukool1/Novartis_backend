@@ -18,8 +18,8 @@ const flattenJSON = (jsonData, parentPath = '') => {
 
         // If value is an object and not null, recurse
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            // Check if it's a min-max range object
-            if ('min' in value && 'max' in value && Object.keys(value).length === 2) {
+            // Check if it's a min-max range object (may also have defaultSelection, experNumber, etc.)
+            if ('min' in value && 'max' in value) {
                 fields.push({
                     path: currentPath,
                     value: value,
@@ -59,7 +59,8 @@ const isMetadataField = (fieldName) => {
     const metadataFields = [
         'id', 'caseId', 'userId', 'userCaseId',
         'percentage', 'isDraft', 'isDeleted',
-        'createdAt', 'updatedAt', 'investigatorName'
+        'createdAt', 'updatedAt', 'investigatorName',
+        'createdBy'
     ];
     return metadataFields.includes(fieldName);
 }
