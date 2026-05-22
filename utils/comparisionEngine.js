@@ -1,6 +1,99 @@
 const fieldExtractorService = require('./fieldExtractor.js');
 
+const CDASI_POSTERIOR_NECK_SECTIONS = [
+    'CDASI_Damage_initial',
+    'CDASI_Activity_initial',
+    'CDASI_Damage_followUp',
+    'CDASI_Activity_followUp'
+];
 
+const POSTERIOR_NECK_METRICS = ['erythema', 'scale', 'erosion'];
+
+const isCdasiPosteriorNeckField = (path) => {
+    return CDASI_POSTERIOR_NECK_SECTIONS.some(section =>
+        POSTERIOR_NECK_METRICS.some(metric => path === `${section}.Posterior Neck.${metric}`)
+    );
+};
+
+const matchesDefaultSelection = (actualValue, defaultSelection) => {
+    if (defaultSelection === null || defaultSelection === undefined || defaultSelection === '') {
+        return false;
+    }
+
+    const actualStr = String(actualValue).trim().toUpperCase();
+    const ds = String(defaultSelection).trim();
+
+    if (ds === '0') {
+        return actualStr === '0';
+    }
+
+    if (ds.toUpperCase() === 'NA') {
+        return actualStr === 'NA';
+    }
+
+    const dsUpper = ds.toUpperCase();
+    if (dsUpper === '0&NA' || dsUpper === '0/NA') {
+        return actualStr === '0' || actualStr === 'NA';
+    }
+
+    return actualStr === ds.toUpperCase();
+};
+
+/**
+ * Accept answer if it matches defaultSelection OR falls within min-max range.
+ */
+const compareRangeOrDefaultSelection = (expectedValue, actualValue) => {
+    const { min, max, defaultSelection } = expectedValue;
+
+    if (matchesDefaultSelection(actualValue, defaultSelection)) {
+        return {
+            isMatch: true,
+            deviation: 0,
+            status: 'MATCH',
+            message: `Match (defaultSelection: ${defaultSelection})`
+        };
+    }
+
+    if (String(actualValue).trim().toUpperCase() === 'NA') {
+        return {
+            isMatch: false,
+            deviation: 0,
+            status: 'MISMATCH',
+            message: `Expected within range (${min}-${max}) or defaultSelection (${defaultSelection}) but got NA`
+        };
+    }
+
+    const expectedMin = parseFloat(min);
+    const expectedMax = parseFloat(max);
+    const actualNum = parseFloat(actualValue);
+
+    if (isNaN(actualNum)) {
+        return {
+            isMatch: false,
+            deviation: 0,
+            status: 'MISMATCH',
+            message: 'Invalid actual value (must be numeric)'
+        };
+    }
+
+    const isMatch = actualNum >= expectedMin && actualNum <= expectedMax;
+
+    let deviation = 0;
+    if (actualNum < expectedMin) {
+        deviation = parseFloat((actualNum - expectedMin).toFixed(2));
+    } else if (actualNum > expectedMax) {
+        deviation = parseFloat((actualNum - expectedMax).toFixed(2));
+    }
+
+    return {
+        isMatch,
+        deviation,
+        status: isMatch ? 'RANGED_MATCH' : 'RANGED_MISMATCH',
+        message: isMatch
+            ? `Match within acceptable range (${expectedMin} - ${expectedMax})`
+            : `Values are outside acceptable range (${expectedMin} - ${expectedMax}) and do not match defaultSelection (${defaultSelection})`
+    };
+};
 
 const compareField = (expectedValue, actualValue, validationRule = null) => {
     // Handle null/undefined cases for expected value
@@ -188,6 +281,59 @@ const compareField = (expectedValue, actualValue, validationRule = null) => {
 }
 
 /**
+ * Compare form score section where master has min/max bounds
+ * and user submission has actual metric values.
+ */
+const compareFormScoreSection = (sectionName, expectedSection = {}, actualSection = {}) => {
+    const comparisons = [];
+
+    if (!expectedSection || typeof expectedSection !== 'object') {
+        return comparisons;
+    }
+
+    if (!actualSection || typeof actualSection !== 'object') {
+        return comparisons;
+    }
+
+    const metricConfigs = [
+        { metric: 'damage', minKey: 'damagemin', maxKey: 'damagemax' },
+        { metric: 'activity', minKey: 'activitymin', maxKey: 'activitymax' }
+    ];
+
+    metricConfigs.forEach(({ metric, minKey, maxKey }) => {
+        const minValue = expectedSection[minKey];
+        const maxValue = expectedSection[maxKey];
+        const actualValue = actualSection[metric];
+
+        // Skip when range boundaries are not configured in master sheet.
+        if (minValue === undefined || minValue === null || maxValue === undefined || maxValue === null) {
+            return;
+        }
+
+        // Keep behavior aligned with normal flow: ignore unsubmitted values.
+        if (actualValue === undefined || actualValue === null || String(actualValue).trim() === '') {
+            return;
+        }
+
+        const comparisonResult = compareField(
+            { min: minValue, max: maxValue },
+            actualValue
+        );
+
+        comparisons.push({
+            section: sectionName,
+            fieldName: `${sectionName}.${metric}`,
+            expectedValue: { min: minValue, max: maxValue },
+            actualValue: actualValue,
+            validationType: 'range',
+            ...comparisonResult
+        });
+    });
+
+    return comparisons;
+}
+
+/**
  * Exact or Default match comparison
  */
 const exactMatch = (expected, actual) => {
@@ -356,14 +502,17 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
         // Get validation rule for this field
         const validationRule = rulesMap[path] || null;
 
-        // Perform comparison
-        const
+        // CDASI Posterior Neck fields: accept range OR defaultSelection match
+        const useRangeOrDefault =
+            isCdasiPosteriorNeckField(path) &&
+            expectedValue &&
+            typeof expectedValue === 'object' &&
+            'min' in expectedValue &&
+            'max' in expectedValue;
 
-            comparisonResult = compareField(
-                expectedValue,
-                actualValue,
-                validationRule
-            );
+        const comparisonResult = useRangeOrDefault
+            ? compareRangeOrDefaultSelection(expectedValue, actualValue)
+            : compareField(expectedValue, actualValue, validationRule);
 
         // Store detailed comparison result
         comparisons.push({
@@ -371,10 +520,29 @@ const compareSubmission = (masterData, userData, validationRules = []) => {
             fieldName: fieldExtractorService.getFieldName(path),
             expectedValue: expectedValue,
             actualValue: actualValue,
-            validationType: validationRule?.validationType || 'exact',
+            validationType: useRangeOrDefault ? 'range_or_default' : (validationRule?.validationType || 'exact'),
             ...comparisonResult
         });
     });
+
+    // Explicit handling for form score columns:
+    // master: { damagemin/damagemax, activitymin/activitymax }
+    // user:   { damage, activity }
+    comparisons.push(
+        ...compareFormScoreSection(
+            'form_Score_initial',
+            masterData?.form_Score_initial,
+            userData?.form_Score_initial
+        )
+    );
+
+    comparisons.push(
+        ...compareFormScoreSection(
+            'form_Score_followUp',
+            masterData?.form_Score_followUp,
+            userData?.form_Score_followUp
+        )
+    );
 
     return comparisons;
 }

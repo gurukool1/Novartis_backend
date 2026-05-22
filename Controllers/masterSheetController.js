@@ -263,27 +263,30 @@ const uploadAnswerSheet = async (req, res) => {
                 });
             }
         }
+        console.log("formData.grandTotal", formData.grandTotal);
 
         // No existing record → create new
         const form = await MasterAnswerSheet.create({
             caseId,
             createdBy: createdBy.dataValues.id,
-            MMT_8_initial: formData.MMT_8_initial || {},
-            CDASI_Activity_initial: formData.CDASI_Activity_initial || {},
-            CDASI_Damage_initial: formData.CDASI_Damage_initial || {},
-            Gottron_Hands_initial: formData.Gottron_Hands_initial || {},
-            Periungual_initial: formData.Periungual_initial || {},
-            Alopecia_initial: formData.Alopecia_initial || {},
-            MDAAT_initial: formData.MDAAT_initial || {},
-            MMT_8_followUp: formData.MMT_8_followUp || {},
-            CDASI_Activity_followUp: formData.CDASI_Activity_followUp || {},
-            CDASI_Damage_followUp: formData.CDASI_Damage_followUp || {},
-            Gottron_Hands_followUp: formData.Gottron_Hands_followUp || {},
-            Periungual_followUp: formData.Periungual_followUp || {},
-            Alopecia_followUp: formData.Alopecia_followUp || {},
-            MDAAT_followUp: formData.MDAAT_followUp || {},
-            Physician_initial: formData.Physician_initial || {},
-            Physician_followUp: formData.Physician_followUp || {},
+            MMT_8_initial: formData?.MMT_8_initial || {},
+            CDASI_Activity_initial: formData?.CDASI_Activity_initial || {},
+            CDASI_Damage_initial: formData?.CDASI_Damage_initial || {},
+            Gottron_Hands_initial: formData?.Gottron_Hands_initial || {},
+            Periungual_initial: formData?.Periungual_initial || {},
+            Alopecia_initial: formData?.Alopecia_initial || {},
+            MDAAT_initial: formData?.MDAAT_initial || {},
+            MMT_8_followUp: formData?.MMT_8_followUp || {},
+            CDASI_Activity_followUp: formData?.CDASI_Activity_followUp || {},
+            CDASI_Damage_followUp: formData?.CDASI_Damage_followUp || {},
+            Gottron_Hands_followUp: formData?.Gottron_Hands_followUp || {},
+            Periungual_followUp: formData?.Periungual_followUp || {},
+            Alopecia_followUp: formData?.Alopecia_followUp || {},
+            MDAAT_followUp: formData?.MDAAT_followUp || {},
+            Physician_initial: formData?.Physician_initial || {},
+            Physician_followUp: formData?.Physician_followUp || {},
+            form_Score_initial: formData?.form_Score_initial || {},
+            form_Score_followUp: formData?.form_Score_followUp || {},
             isDeleted: 0
         });
         await Case.update(
@@ -393,24 +396,27 @@ const updateMasterSheet = async (req, res) => {
                 message: 'Master answer sheet not found'
             });
         }
+
         const updatedSheet = await masterSheet.update({
             caseId,
-            MMT_8_initial: formData.MMT_8_initial || masterSheet.MMT_8_initial,
-            CDASI_Activity_initial: formData.CDASI_Activity_initial || masterSheet.CDASI_Activity_initial,
-            CDASI_Damage_initial: formData.CDASI_Damage_initial || masterSheet.CDASI_Damage_initial,
-            Gottron_Hands_initial: formData.Gottron_Hands_initial || masterSheet.Gottron_Hands_initial,
-            Periungual_initial: formData.Periungual_initial || masterSheet.Periungual_initial,
-            Alopecia_initial: formData.Alopecia_initial || masterSheet.Alopecia_initial,
-            MDAAT_initial: formData.MDAAT_initial || masterSheet.MDAAT_initial,
-            MMT_8_followUp: formData.MMT_8_followUp || masterSheet.MMT_8_followUp,
-            CDASI_Activity_followUp: formData.CDASI_Activity_followUp || masterSheet.CDASI_Activity_followUp,
-            CDASI_Damage_followUp: formData.CDASI_Damage_followUp || masterSheet.CDASI_Damage_followUp,
-            Gottron_Hands_followUp: formData.Gottron_Hands_followUp || masterSheet.Gottron_Hands_followUp,
-            Periungual_followUp: formData.Periungual_followUp || masterSheet.Periungual_followUp,
-            Alopecia_followUp: formData.Alopecia_followUp || masterSheet.Alopecia_followUp,
-            MDAAT_followUp: formData.MDAAT_followUp || masterSheet.MDAAT_followUp,
-            Physician_initial: formData.Physician_initial || masterSheet.Physician_initial,
-            Physician_followUp: formData.Physician_followUp || masterSheet.Physician_followUp,
+            MMT_8_initial: formData?.MMT_8_initial || masterSheet.MMT_8_initial,
+            CDASI_Activity_initial: formData?.CDASI_Activity_initial || masterSheet.CDASI_Activity_initial,
+            CDASI_Damage_initial: formData?.CDASI_Damage_initial || masterSheet.CDASI_Damage_initial,
+            Gottron_Hands_initial: formData?.Gottron_Hands_initial || masterSheet.Gottron_Hands_initial,
+            Periungual_initial: formData?.Periungual_initial || masterSheet.Periungual_initial,
+            Alopecia_initial: formData?.Alopecia_initial || masterSheet.Alopecia_initial,
+            MDAAT_initial: formData?.MDAAT_initial || masterSheet.MDAAT_initial,
+            MMT_8_followUp: formData?.MMT_8_followUp || masterSheet.MMT_8_followUp,
+            CDASI_Activity_followUp: formData?.CDASI_Activity_followUp || masterSheet.CDASI_Activity_followUp,
+            CDASI_Damage_followUp: formData?.CDASI_Damage_followUp || masterSheet.CDASI_Damage_followUp,
+            Gottron_Hands_followUp: formData?.Gottron_Hands_followUp || masterSheet.Gottron_Hands_followUp,
+            Periungual_followUp: formData?.Periungual_followUp || masterSheet.Periungual_followUp,
+            Alopecia_followUp: formData?.Alopecia_followUp || masterSheet.Alopecia_followUp,
+            MDAAT_followUp: formData?.MDAAT_followUp || masterSheet.MDAAT_followUp,
+            Physician_initial: formData?.Physician_initial || masterSheet.Physician_initial,
+            Physician_followUp: formData?.Physician_followUp || masterSheet.Physician_followUp,
+            form_Score_initial: formData?.form_Score_initial || masterSheet.form_Score_initial,
+            form_Score_followUp: formData?.form_Score_followUp || masterSheet.form_Score_followUp,
             // percentage: percentage,
         });
 
