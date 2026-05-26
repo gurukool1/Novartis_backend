@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const evaluationController = require('../controllers/evaluationController');
+const evaluationController = require('../Controllers/evaluationController');
 const masterSheetController = require('../Controllers/masterSheetController');
 const upload = require('../Middleware/multer');
 const verifyToken = require('../Middleware/verifyToken');
